@@ -1,0 +1,98 @@
+import {
+  useInfiniteQuery,
+  useQuery
+} from "@tanstack/react-query";
+
+import {
+  getEventDetail,
+  getEventsPage,
+  getPackDetail,
+  getPacksPage
+} from "../services/catalog";
+import type { CatalogFilters, PaginatedResult, PublicEvent, PublicPack } from "../types";
+
+export const catalogKeys = {
+  events: (filters: CatalogFilters) => [
+    "public-events",
+    filters
+  ],
+  event: (eventId: number) => [
+    "public-event",
+    eventId
+  ],
+  packs: (filters: CatalogFilters) => [
+    "public-packs",
+    filters
+  ],
+  pack: (packId: string) => [
+    "public-pack",
+    packId
+  ]
+};
+
+export function useEventsInfinite(
+  filters: CatalogFilters,
+  enabled = true
+) {
+  return useInfiniteQuery({
+    queryKey: catalogKeys.events(filters),
+    queryFn: ({ pageParam }: { pageParam: number }) =>
+      getEventsPage({
+        offset: pageParam,
+        filters
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (page: PaginatedResult<PublicEvent>) =>
+      page.nextOffset ?? undefined,
+    enabled,
+    staleTime: 60_000,
+    gcTime: 10 * 60_000,
+    refetchOnWindowFocus: false
+  });
+}
+
+export function usePacksInfinite(
+  filters: CatalogFilters,
+  enabled = true
+) {
+  return useInfiniteQuery({
+    queryKey: catalogKeys.packs(filters),
+    queryFn: ({ pageParam }: { pageParam: number }) =>
+      getPacksPage({
+        offset: pageParam,
+        filters
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (page: PaginatedResult<PublicPack>) =>
+      page.nextOffset ?? undefined,
+    enabled,
+    staleTime: 60_000,
+    gcTime: 10 * 60_000,
+    refetchOnWindowFocus: false
+  });
+}
+
+export function useEventDetail(
+  eventId: number
+) {
+  return useQuery({
+    queryKey: catalogKeys.event(eventId),
+    queryFn: () => getEventDetail(eventId),
+    enabled:
+      Number.isFinite(eventId) && eventId > 0,
+    staleTime: 60_000,
+    gcTime: 10 * 60_000
+  });
+}
+
+export function usePackDetail(
+  packId: string
+) {
+  return useQuery({
+    queryKey: catalogKeys.pack(packId),
+    queryFn: () => getPackDetail(packId),
+    enabled: packId.length > 0,
+    staleTime: 60_000,
+    gcTime: 10 * 60_000
+  });
+}

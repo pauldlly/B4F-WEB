@@ -1,0 +1,17 @@
+[functions.create-public-ticket-checkout]
+verify_jwt = false
+
+[functions.public-sumup-webhook]
+verify_jwt = false
+
+[functions.get-public-checkout-status]
+verify_jwt = false
+
+[functions.get-public-order]
+verify_jwt = false
+
+[functions.get-public-orders]
+verify_jwt = false
+
+[functions.create-public-support-request]
+verify_jwt = false
