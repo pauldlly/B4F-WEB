@@ -281,11 +281,11 @@ export function AboutPage() {
                         </span>
                       </div>
 
-                      <h3 className="mt-8 font-title text-2xl uppercase leading-[0.9]">
+                      <h3 className="mt-6 font-title text-2xl uppercase leading-[0.9]">
                         {step.title}
                       </h3>
 
-                      <p className="mt-4 font-body text-sm leading-7 text-white/40">
+                      <p className="mt-2 font-body text-sm leading-5 text-white/40">
                         {step.text}
                       </p>
                     </article>

@@ -1109,8 +1109,6 @@ export function WhatsAppAssistant() {
         encodeURIComponent(
           `Bonjour
 
-Je viens du site
-
 👤 Prénom : ${answers.firstName}
 👤 Nom : ${answers.lastName}
 📞 Téléphone : ${answers.phoneCode} ${answers.phone}

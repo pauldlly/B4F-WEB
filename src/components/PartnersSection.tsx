@@ -9,7 +9,7 @@ import {
 const partners = [
   {
     name: "Shôko",
-    logo: "/partners/shoko.svg",
+    logo: "/partners/shoko.png",
     url: "https://shoko.biz/",
   },
   {
@@ -19,22 +19,22 @@ const partners = [
   },
   {
     name: "Carpe Diem",
-    logo: "/partners/cdlc.svg",
+    logo: "/partners/cdlc.png",
     url: "https://cdlcbarcelona.com/",
   },
   {
     name: "Sutton",
-    logo: "/partners/sutton.svg",
+    logo: "/partners/sutton.png",
     url: "https://suttonbarcelona.com/",
   },
   {
     name: "Otto Zutz",
-    logo: "/partners/otto-zutz.svg",
+    logo: "/partners/otto-zutz.png",
     url: "https://www.ottozutz.com/",
   },
   {
     name: "Sea Sea Club",
-    logo: "/partners/sea-sea-club.svg",
+    logo: "/partners/sea-sea-club.png",
     url: "https://www.seaseaclub.com/",
   },
 ];
@@ -162,10 +162,9 @@ export function PartnersSection() {
                   text-[clamp(2.8rem,6vw,5.5rem)]
                   uppercase
                   leading-[0.86]
-                  tracking-[-0.05em]
                 "
               >
-                Les lieux qui font
+                NOS CLUBS
 
                 <span
                   className="
@@ -177,8 +176,7 @@ export function PartnersSection() {
                     bg-clip-text
                     text-transparent
                   "
-                >
-                  vibrer Barcelone.
+                >PARTENAIRES.
                 </span>
               </h2>
             </div>
@@ -328,8 +326,8 @@ export function PartnersSection() {
                     className="
                       relative
                       z-10
-                      max-h-[68px]
-                      w-[75%]
+                      max-h-[76px]
+                      w-[85%]
                       object-contain
                       opacity-55
                       grayscale

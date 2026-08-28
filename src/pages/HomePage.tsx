@@ -324,7 +324,6 @@ export function HomePage() {
                 text-[clamp(3.8rem,12vw,9rem)]
                 uppercase
                 leading-[0.76]
-                tracking-[-0.07em]
               "
             >
               We are
@@ -358,7 +357,7 @@ export function HomePage() {
               "
             >
               Les soirées, les packs et les
-              meilleurs plans pour vivre
+              bons plans pour vivre
               Barcelone comme il faut.
             </p>
 
@@ -706,7 +705,6 @@ export function HomePage() {
                   text-[clamp(2.8rem,6vw,5.5rem)]
                   uppercase
                   leading-[0.86]
-                  tracking-[-0.05em]
                 "
               >
                 Regarde l’ambiance
@@ -1089,7 +1087,6 @@ export function HomePage() {
                 text-[clamp(2.7rem,6vw,5.4rem)]
                 uppercase
                 leading-[0.86]
-                tracking-[-0.05em]
               "
             >
               Travaille là où

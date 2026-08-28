@@ -146,7 +146,7 @@ export function Footer() {
         <div className="mt-6 border-t border-white/[0.07] pt-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-8 w-14 shrink-0 items-center justify-start">
+              <div className="flex h-8 w-10 shrink-0 items-center justify-start">
                 <img
                   src="/brand/b4f-header-white.png"
                   alt="B4F EVENTS"

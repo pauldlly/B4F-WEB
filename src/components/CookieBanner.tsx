@@ -46,8 +46,7 @@ export function CookieBanner() {
               <h2 className="font-subtitle text-sm">Vos préférences de confidentialité</h2>
               <p className="mt-2 font-body text-xs leading-5 text-white/[0.45] sm:text-sm sm:leading-6">
                 Les stockages nécessaires font fonctionner le panier, la langue et les billets. Les services optionnels ne sont activés qu’avec votre accord.{" "}
-                <Link to="/cookies" className="text-secondary underline underline-offset-4">Détails</Link>
-              </p>
+               </p>
             </div>
             <button
               type="button"
