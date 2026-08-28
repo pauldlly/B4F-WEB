@@ -14,7 +14,7 @@ export function Footer() {
 
   const whatsappUrl =
     `https://wa.me/${number}?text=${encodeURIComponent(
-      "Bonjour B4F 👋 J’ai une question."
+      ""
     )}`;
 
   const groups = [
@@ -91,7 +91,7 @@ export function Footer() {
               </a>
 
               <a
-                href="https://www.tiktok.com/@b4f_events"
+                href="https://www.tiktok.com/@b4fevents"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex h-8 items-center gap-2 rounded-full border border-white/[0.10] bg-white/[0.06] px-3 font-body text-[11px] font-medium text-white/70 transition-all duration-200 hover:border-white/20 hover:bg-white/[0.10] hover:text-white"
@@ -158,7 +158,7 @@ export function Footer() {
 
               <span className="flex shrink-0 items-center gap-1.5 font-body text-[12px] text-white/30">
                 © Copyright B4F Events,
-                Barcelona 2026
+                Barcelona 2027
               </span>
             </div>
 

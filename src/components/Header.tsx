@@ -69,32 +69,79 @@ export function Header() {
   useBodyScrollLock(
     menuOpen,
   );
+useEffect(() => {
+  let frame = 0;
 
-  useEffect(() => {
-    const onScroll = () => {
-      setScrolled(
-        window.scrollY >
-          24,
-      );
-    };
-
-    onScroll();
-
-    window.addEventListener(
-      "scroll",
-      onScroll,
-      {
-        passive: true,
-      },
+  const getScrollPosition = () =>
+    Math.max(
+      window.scrollY || 0,
+      window.pageYOffset || 0,
+      document.documentElement.scrollTop || 0,
+      document.body.scrollTop || 0,
     );
 
-    return () => {
-      window.removeEventListener(
-        "scroll",
-        onScroll,
-      );
-    };
-  }, []);
+  const updateHeader = () => {
+    cancelAnimationFrame(frame);
+
+    frame = requestAnimationFrame(() => {
+      setScrolled(getScrollPosition() > 20);
+    });
+  };
+
+  // État initial
+  updateHeader();
+
+  window.addEventListener("scroll", updateHeader, {
+    passive: true,
+  });
+
+  window.addEventListener("touchmove", updateHeader, {
+    passive: true,
+  });
+
+  window.addEventListener("resize", updateHeader, {
+    passive: true,
+  });
+
+  window.visualViewport?.addEventListener(
+    "scroll",
+    updateHeader,
+  );
+
+  window.visualViewport?.addEventListener(
+    "resize",
+    updateHeader,
+  );
+
+  return () => {
+    cancelAnimationFrame(frame);
+
+    window.removeEventListener(
+      "scroll",
+      updateHeader,
+    );
+
+    window.removeEventListener(
+      "touchmove",
+      updateHeader,
+    );
+
+    window.removeEventListener(
+      "resize",
+      updateHeader,
+    );
+
+    window.visualViewport?.removeEventListener(
+      "scroll",
+      updateHeader,
+    );
+
+    window.visualViewport?.removeEventListener(
+      "resize",
+      updateHeader,
+    );
+  };
+}, []);
 
   useEffect(() => {
     setMenuOpen(
@@ -178,21 +225,47 @@ export function Header() {
 
   return (
     <header
-      className={`
-        fixed
-        inset-x-0
-        top-0
-        z-50
-        transition-all
-        duration-500
+  className={`
+    fixed
+    left-0
+    right-0
+    top-0
+    z-[9999]
+    isolate
+    w-full
+    transform-gpu
+    [backface-visibility:hidden]
+    [transform:translate3d(0,0,0)]
+    transition-[background-color,border-color,box-shadow]
+    duration-300
 
-        ${
-          transparent
-            ? "border-b border-transparent bg-gradient-to-b from-black/80 via-black/30 to-transparent"
-            : "border-b border-white/[0.07] bg-[#090909]/[0.92] shadow-[0_16px_55px_rgba(0,0,0,.35)] backdrop-blur-2xl"
-        }
-      `}
-    >
+    ${
+      transparent
+        ? `
+          border-b
+          border-white/[0.06]
+          bg-[#090909]/[0.94]
+          shadow-[0_8px_35px_rgba(0,0,0,.25)]
+
+          lg:border-transparent
+          lg:bg-gradient-to-b
+          lg:from-black/80
+          lg:via-black/30
+          lg:to-transparent
+          lg:shadow-none
+        `
+        : `
+          border-b
+          border-white/[0.07]
+          bg-[#090909]/[0.96]
+          shadow-[0_16px_55px_rgba(0,0,0,.35)]
+
+          lg:bg-[#090909]/[0.92]
+          lg:backdrop-blur-2xl
+        `
+    }
+  `}
+>
       {/* =====================================================
           HEADER BAR
       ====================================================== */}

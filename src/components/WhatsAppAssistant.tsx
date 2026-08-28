@@ -1078,8 +1078,8 @@ export function WhatsAppAssistant() {
         encodeURIComponent(
           language ===
             "fr"
-            ? "Bonjour B4F 👋 J’aimerais avoir des informations pour ma sortie à Barcelone."
-            : "Hi B4F 👋 I would like some information about my night in Barcelona.",
+            ? "Bonjour, J’aimerais avoir des informations pour ma sortie à Barcelone."
+            : "Hi, I would like some information about my night in Barcelona.",
         );
 
       return `https://wa.me/${promoterNumber}?text=${text}`;
@@ -1107,9 +1107,9 @@ export function WhatsAppAssistant() {
 
       const text =
         encodeURIComponent(
-          `Bonjour B4F 👋
+          `Bonjour
 
-Je viens du questionnaire du site.
+Je viens du site
 
 👤 Prénom : ${answers.firstName}
 👤 Nom : ${answers.lastName}
