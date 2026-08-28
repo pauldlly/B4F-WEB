@@ -2,33 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
+
+/* =========================
+   B4F FONTS
+   ========================= */
+
 @font-face {
   font-family: "MonumentExtended-Ultrabold";
-  src: url("/fonts/MonumentExtended-Ultrabold.woff2") format("woff2");
+  src: url("/fonts/MonumentExtended-Ultrabold.otf") format("opentype");
+  font-weight: 800;
+  font-style: normal;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Montserra-Bold";
-  src: url("/fonts/Montserra-Bold.woff2") format("woff2");
+  src: url("/fonts/montserratbold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Montserra-Medium";
-  src: url("/fonts/Montserra-Medium.woff2") format("woff2");
+  src: url("/fonts/montserratmedium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Montserra-Regular";
-  src: url("/fonts/Montserra-Regular.woff2") format("woff2");
+  src: url("/fonts/montserratregular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Montserra-Light";
-  src: url("/fonts/Montserra-Light.woff2") format("woff2");
+  src: url("/fonts/montserratlight.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
   font-display: swap;
 }
 
