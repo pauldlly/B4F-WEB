@@ -638,16 +638,14 @@ export function HelpPage() {
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.25)_0%,rgba(0,0,0,.08)_40%,rgba(0,0,0,.88)_100%)]" />
 
         <div className="pointer-events-none absolute -left-40 top-20 h-[480px] w-[480px] rounded-full bg-secondary/[0.07] blur-[140px]" />
-
-        <div className="page-shell relative min-h-[690px] pt-[150px] sm:min-h-[720px] sm:pt-[165px] lg:min-h-[700px] lg:pt-[155px]">
-          <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-start">
+<div className="page-shell relative min-h-[690px] pt-[150px] pb-10 sm:min-h-[720px] sm:pt-[165px] sm:pb-12 lg:min-h-[700px] lg:pt-[155px] lg:pb-0">  <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-start">
             <Reveal>
               <div className="max-w-[780px]">
                 <p className="font-subtitle text-[11px] uppercase tracking-[0.22em] text-white/40 sm:text-xs">
                   Billet · Paiement · Pack · Soirée
                 </p>
 
-                <h1 className="mt-4 font-title text-[clamp(3.4rem,6.2vw,6.1rem)] uppercase leading-[0.82] tracking-[-0.05em]">
+                <h1 className="mt-4 font-title text-[clamp(3.4rem,6.2vw,6.1rem)] uppercase leading-[0.82] ">
                   Besoin d’un
                   <span className="block">
                     coup de
@@ -687,10 +685,10 @@ export function HelpPage() {
                     </span>
 
                     <h3 className="mt-2 font-title text-2xl uppercase leading-none">
-                      WhatsApp B4F
+                      WhatsApp
                     </h3>
 
-                    <p className="mt-3 font-body text-sm text-white/38">
+                    <p className="mt-1 font-body text-sm text-white/38">
                       Écris directement à
                       notre équipe.
                     </p>
@@ -733,7 +731,7 @@ export function HelpPage() {
                       Formulaire
                     </h3>
 
-                    <p className="mt-3 font-body text-sm leading-5 text-white/38">
+                    <p className="mt-1 font-body text-sm leading-5 text-white/38">
                       Pour un problème nécessitant
                       un suivi.
                     </p>
@@ -811,8 +809,7 @@ export function HelpPage() {
           </Reveal>
 
           <Reveal delay={70}>
-            <div className="rounded-[28px] border border-white/[0.08] bg-[#111] p-5 sm:p-7">
-              <form
+  <div className="mt-6 rounded-[28px] border border-white/[0.08] bg-[#111] p-5 sm:p-7 lg:mt-0"><form
                 ref={formRef}
                 onSubmit={submit}
                 noValidate

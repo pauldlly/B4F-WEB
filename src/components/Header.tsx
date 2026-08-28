@@ -302,8 +302,8 @@ useEffect(() => {
               w-[72px]
               object-contain
               object-left
-              sm:h-[50px]
-              sm:w-[82px]
+              sm:h-[58px]
+              sm:w-[90px]
             "
           />
         </Link>

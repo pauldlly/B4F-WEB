@@ -1386,14 +1386,26 @@ export function JoinTeamPage() {
         }
 
         input[type="date"] {
-          min-width: 0;
-        }
+  min-width: 0;
+  padding-right: 14px !important;
+}
 
-        @media (max-width: 639px) {
-          input[type="date"] {
-            font-size: 13px;
-          }
-        }
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.55;
+  cursor: pointer;
+  margin-right: 4px;
+}
+
+@media (max-width: 639px) {
+  input[type="date"] {
+    font-size: 13px;
+    padding-right: 16px !important;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    margin-right: 5px;
+  }
+}
       `}</style>
 
       <Seo
@@ -1619,32 +1631,34 @@ export function JoinTeamPage() {
               Fatigué du job d’été
               classique ?
             </p>
+<h1
+  className="
+    mb-7
+    mt-3
+    w-full
+    max-w-full
+    font-title
+    text-[clamp(2.3rem,11.5vw,4.5rem)]
+    uppercase
+    leading-[0.82]
+    tracking-[-0.035em]
 
-            <h1
-              className="
-                mb-7
-                mt-3
-                max-w-5xl
-                font-title
-                text-[clamp(2.8rem,15vw,4.5rem)]
-                uppercase
-                leading-[0.82]
-                tracking-[-0.05em]
-                sm:mb-10
-                sm:mt-4
-                sm:text-[clamp(4rem,10vw,5.5rem)]
-                lg:mb-12
-                lg:text-[clamp(4.5rem,7.5vw,6.2rem)]
-              "
-            >
-              Barcelone
-              <br className="sm:hidden" />
-              {" "}t’attend.
+    sm:mb-10
+    sm:mt-4
+    sm:text-[clamp(4rem,10vw,5.5rem)]
 
-              <span className="block text-gradient">
-                B4F aussi.
-              </span>
-            </h1>
+    lg:mb-12
+    lg:text-[clamp(4.5rem,7.5vw,6.2rem)]
+  "
+>
+  Barcelone
+  <br className="sm:hidden" />
+  {" "}t’attend.
+
+  <span className="block text-gradient">
+    B4F aussi.
+  </span>
+</h1>
           </Reveal>
         </div>
 
@@ -1750,7 +1764,6 @@ export function JoinTeamPage() {
                   text-[34px]
                   uppercase
                   leading-[0.88]
-                  tracking-[-0.035em]
                   sm:text-5xl
                   lg:text-6xl
                 "
@@ -2103,7 +2116,6 @@ export function JoinTeamPage() {
                 text-[34px]
                 uppercase
                 leading-[0.9]
-                tracking-[-0.03em]
                 sm:text-5xl
               "
             >
@@ -2369,7 +2381,6 @@ export function JoinTeamPage() {
                 text-[34px]
                 uppercase
                 leading-[0.9]
-                tracking-[-0.03em]
                 sm:text-5xl
               "
             >
@@ -2531,7 +2542,6 @@ export function JoinTeamPage() {
                 text-[38px]
                 uppercase
                 leading-[0.88]
-                tracking-[-0.035em]
                 sm:text-5xl
               "
             >
@@ -4277,11 +4287,9 @@ export function JoinTeamPage() {
                       "
                     >
                       Présente-toi en 30
-                      secondes à 1
-                      minute : qui tu es,
+                      secondes : qui tu es,
                       ce qui te motive et
-                      pourquoi tu veux
-                      rejoindre B4F.
+                      pourquoi toi.
                     </p>
 
                     <span
@@ -4403,8 +4411,7 @@ export function JoinTeamPage() {
                         réalisations
 
                         <span className="ml-2 text-secondary">
-                          Facultatif ·
-                          recommandé
+                          Facultatif 
                         </span>
                       </span>
 
@@ -4592,7 +4599,7 @@ export function JoinTeamPage() {
                   >
                     CV
 
-                    <span className="ml-2 text-white/25">
+                        <span className="ml-2 text-secondary">
                       Facultatif
                     </span>
                   </span>

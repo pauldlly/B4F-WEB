@@ -116,7 +116,7 @@ export function AboutPage() {
                 Pool Party · Boat Party · Nightclubs
               </p>
 
-              <h1 className="mt-4 font-title text-[clamp(3rem,5.8vw,5.5rem)] uppercase leading-[0.81] tracking-[-0.05em]">
+              <h1 className="mt-4 font-title text-[clamp(3rem,5.8vw,5.5rem)] uppercase leading-[0.81] ">
                 Barcelone.
 
                 <span className="block">

@@ -1789,7 +1789,7 @@ Pouvez-vous me conseiller une soirée ou un pack ?`,
                       value={
                         answers.firstName
                       }
-                      placeholder="Lionel"
+                      placeholder="Pierre"
                       error={
                         validation &&
                         !firstNameValid
@@ -1819,7 +1819,7 @@ Pouvez-vous me conseiller une soirée ou un pack ?`,
                       value={
                         answers.lastName
                       }
-                      placeholder="Geko"
+                      placeholder="Dujardin"
                       error={
                         validation &&
                         !lastNameValid
@@ -2042,7 +2042,7 @@ Pouvez-vous me conseiller une soirée ou un pack ?`,
                     value={
                       answers.email
                     }
-                    placeholder="lionel@gmail.com"
+                    placeholder="Pierre@gmail.com"
                     type="email"
                     error={
                       validation &&
