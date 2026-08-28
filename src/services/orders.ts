@@ -2,7 +2,10 @@ import { supabase } from "../lib/supabase";
 import type { GuestOrder, GuestOrderAccess } from "../types";
 import { getGuestOrderAccess, getGuestOrderAccesses } from "./orderAccess";
 
-async function invoke<T>(name: string, body: unknown): Promise<T> {
+async function invoke<T>(
+  name: string,
+  body: Record<string, unknown>,
+): Promise<T>{
   if (!supabase) throw new Error("Supabase n’est pas configuré.");
 
   const { data, error } = await supabase.functions.invoke(name, { body });

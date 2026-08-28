@@ -1174,12 +1174,25 @@ export function CheckoutPage() {
 
       clear();
 
-      navigate(
-        `/commande/${result.order.id}?token=${encodeURIComponent(
-          result.order
-            .accessToken,
-        )}&new=1`,
-      );
+      const params =
+  new URLSearchParams({
+    new: "1",
+  });
+
+if (
+  result.order
+    .accessToken
+) {
+  params.set(
+    "token",
+    result.order
+      .accessToken,
+  );
+}
+
+navigate(
+  `/commande/${result.order.id}?${params.toString()}`,
+);
     } catch (
       checkoutError:
         unknown

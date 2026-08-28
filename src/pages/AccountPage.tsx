@@ -97,21 +97,34 @@ export function AccountPage() {
           ) : (
             <div className="mt-6 space-y-3">
               {accountOrders.map((order) => (
-                <Link
-                  key={order.id}
-                  to={`/commande/${order.id}?token=${encodeURIComponent(order.accessToken)}`}
-                  className="flex items-center justify-between rounded-[20px] border border-white/[0.08] bg-background p-4 transition hover:border-secondary/30"
-                >
-                  <div>
-                    <span className="font-subtitle text-xs text-secondary">
-                      {order.reference}
-                    </span>
-                    <strong className="mt-1 block font-subtitle">
-                      {order.tickets.length} {order.tickets.length > 1 ? t("common.tickets") : t("common.ticket")}
-                    </strong>
-                  </div>
-                  <span className="font-subtitle">{t("common.open")}</span>
-                </Link>
+              <Link
+  key={order.id}
+  to={
+    order.accessToken
+      ? `/commande/${order.id}?token=${encodeURIComponent(
+          order.accessToken,
+        )}`
+      : `/commande/${order.id}`
+  }
+  className="flex items-center justify-between rounded-[20px] border border-white/[0.08] bg-background p-4 transition hover:border-secondary/30"
+>
+  <div>
+    <span className="font-subtitle text-xs text-secondary">
+      {order.reference}
+    </span>
+
+    <strong className="mt-1 block font-subtitle">
+      {order.tickets.length}{" "}
+      {order.tickets.length > 1
+        ? t("common.tickets")
+        : t("common.ticket")}
+    </strong>
+  </div>
+
+  <span className="font-subtitle">
+    {t("common.open")}
+  </span>
+</Link>
               ))}
             </div>
           )}

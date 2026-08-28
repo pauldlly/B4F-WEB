@@ -1,4 +1,4 @@
-import { demoEvents } from "../data/demoEvents";
+import { demoEvents } from "../data/demoCatalog";
 import { supabase } from "../lib/supabase";
 import type { PublicEvent, PublicEventOption } from "../types";
 
@@ -82,28 +82,79 @@ export async function getPublicEvents(): Promise<{
     price: numberValue(option.price),
   }));
 
-  const events = ((eventRows ?? []) as EventRow[]).map(
-    (event): PublicEvent => ({
-      id: Number(event.id),
-      name: event.name || "Événement B4F",
-      location: event.location,
-      address: event.address,
-      type: event.type,
-      description: event.description,
-      eventDate: event.event_date,
-      startTime: event.start_time,
-      endTime: event.end_time,
-      imageUrl: event.image_url,
-      womenPrice: numberValue(event.women_price),
-      menPrice: numberValue(event.men_price),
-      womenCapacity: event.women_capacity,
-      menCapacity: event.men_capacity,
-      soldout: Boolean(event.soldout),
-      options: options.filter(
-        (option) => option.eventId === Number(event.id),
+const events = ((eventRows ?? []) as EventRow[]).map(
+  (event): PublicEvent => ({
+    id: Number(event.id),
+
+    name:
+      event.name ||
+      "Événement B4F",
+
+    location:
+      event.location,
+
+    address:
+      event.address,
+
+    type:
+      event.type,
+
+    description:
+      event.description,
+
+    eventDate:
+      event.event_date,
+
+    startTime:
+      event.start_time,
+
+    endTime:
+      event.end_time,
+
+    imageUrl:
+      event.image_url,
+
+    mediaLink:
+      null,
+
+    womenPrice:
+      numberValue(
+        event.women_price,
       ),
-    }),
-  );
+
+    menPrice:
+      numberValue(
+        event.men_price,
+      ),
+
+    womenCapacity:
+      event.women_capacity,
+
+    menCapacity:
+      event.men_capacity,
+
+    womenSold:
+      0,
+
+    menSold:
+      0,
+
+    soldout:
+      Boolean(
+        event.soldout,
+      ),
+
+    options:
+      options.filter(
+        (option) =>
+          option.eventId ===
+          Number(event.id),
+      ),
+
+    tables:
+      [],
+  }),
+);
 
   return {
     events,
