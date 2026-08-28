@@ -684,44 +684,7 @@ export function HelpPage() {
 
                   <div className="min-w-0 flex-1">
                     <span className="font-subtitle text-[9px] uppercase tracking-[0.19em] text-green-400">
-                      Ma soirée
-                    </span>
-
-                    <h3 className="mt-2 font-title text-2xl uppercase leading-none">
-                      Mon promoteur
-                    </h3>
-
-                    <p className="mt-3 font-body text-sm text-white/38">
-                      Rendez-vous, horaires,
-                      groupe ou accès.
-                    </p>
-                  </div>
-
-                  <ArrowUpRight
-                    size={18}
-                    className="shrink-0 text-white/20 transition duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-white"
-                  />
-                </a>
-              </Reveal>
-
-              <Reveal delay={80}>
-                <a
-                  href={
-                    supportWhatsappUrl
-                  }
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group flex min-h-[138px] items-center gap-5 rounded-[24px] border border-white/[0.12] bg-black/40 p-5 backdrop-blur-2xl transition duration-300 hover:border-secondary/30 hover:bg-black/55"
-                >
-                  <span className="grid h-14 w-14 shrink-0 place-items-center rounded-[17px] bg-secondary/10 text-secondary">
-                    <Headphones
-                      size={24}
-                    />
-                  </span>
-
-                  <div className="min-w-0 flex-1">
-                    <span className="font-subtitle text-[9px] uppercase tracking-[0.19em] text-secondary">
-                      Autre question
+                       Autre question
                     </span>
 
                     <h3 className="mt-2 font-title text-2xl uppercase leading-none">

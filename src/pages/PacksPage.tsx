@@ -85,8 +85,14 @@ export function PacksPage() {
 
   /*
    * PACKS
-   * TRIÉS DU MOINS CHER
-   * AU PLUS CHER
+   *
+   * - on retire les packs visibles
+   *   uniquement dans l'application
+   *
+   * - on retire les doublons
+   *
+   * - on trie du moins cher
+   *   au plus cher
    */
   const packs =
     useMemo(
@@ -96,29 +102,38 @@ export function PacksPage() {
             (page) =>
               page.items,
           ) ?? [],
-        ).sort(
-          (
-            a,
-            b,
-          ) => {
-            const priceA =
-              Math.min(
-                a.womenPrice,
-                a.menPrice,
-              );
+        )
+          .filter(
+            (pack) =>
+              !(
+                pack as PublicPack & {
+                  isVisibleOnlyInApp?: boolean;
+                }
+              ).isVisibleOnlyInApp,
+          )
+          .sort(
+            (
+              a,
+              b,
+            ) => {
+              const priceA =
+                Math.min(
+                  a.womenPrice,
+                  a.menPrice,
+                );
 
-            const priceB =
-              Math.min(
-                b.womenPrice,
-                b.menPrice,
-              );
+              const priceB =
+                Math.min(
+                  b.womenPrice,
+                  b.menPrice,
+                );
 
-            return (
-              priceA -
-              priceB
-            );
-          },
-        ),
+              return (
+                priceA -
+                priceB
+              );
+            },
+          ),
       [
         query.data,
       ],
@@ -565,7 +580,7 @@ export function PacksPage() {
               </div>
             )}
 
-          {/* LOAD MORE UNIQUEMENT S'IL RESTE DES PACKS */}
+          {/* LOAD MORE */}
           {!query.isPending &&
             !query.error &&
             Boolean(
