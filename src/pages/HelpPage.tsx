@@ -349,7 +349,7 @@ export function HelpPage() {
     ).replace(/\D/g, "");
 
   const promoterMessage = [
-    "Bonjour 👋",
+    "Bonjour,",
     "J’ai une question concernant une soirée B4F.",
 
     form.orderReference
@@ -659,9 +659,8 @@ export function HelpPage() {
                 </h1>
 
                 <p className="mt-6 max-w-md font-body text-sm leading-7 text-white/45 sm:text-base">
-                  Trouve la bonne réponse ou
-                  contacte directement la bonne
-                  personne.
+                  Une question sur ta soirée, ton billet ou ton séjour ? Notre équipe est là pour t’aider.
+
                 </p>
               </div>
             </Reveal>
@@ -735,8 +734,7 @@ export function HelpPage() {
                     </h3>
 
                     <p className="mt-3 font-body text-sm leading-5 text-white/38">
-                      Pour une commande ou
-                      un problème nécessitant
+                      Pour un problème nécessitant
                       un suivi.
                     </p>
                   </div>
@@ -833,9 +831,9 @@ export function HelpPage() {
                   </span>
 
                   <input
-                    className={`form-input min-h-[54px] ${
+                    className={`form-input min-h-[54px] !bg-white/[0.035] focus:!outline-none focus-visible:!outline-none focus:!ring-0 focus:!ring-offset-0 ${
                       errors.name
-                        ? "border-red-500/60 bg-red-500/[0.04]"
+                        ? "border-red-500/60"
                         : ""
                     }`}
                     value={
@@ -875,9 +873,9 @@ export function HelpPage() {
                   </span>
 
                   <input
-                    className={`form-input min-h-[54px] ${
+                    className={`form-input min-h-[54px] !bg-white/[0.035] focus:!outline-none focus-visible:!outline-none focus:!ring-0 focus:!ring-offset-0 ${
                       errors.email
-                        ? "border-red-500/60 bg-red-500/[0.04]"
+                        ? "border-red-500/60"
                         : ""
                     }`}
                     type="email"
@@ -911,16 +909,16 @@ export function HelpPage() {
                       ? "true"
                       : undefined
                   }
-                  className="min-w-0 sm:col-span-2"
+                  className="relative z-[60] min-w-0 sm:col-span-2"
                 >
                   <span className="mb-2 block font-subtitle text-xs">
                     Téléphone
                   </span>
 
                   <div
-                    className={`relative w-full overflow-visible rounded-[16px] border bg-white/[0.035] transition ${
+                    className={`relative z-[60] w-full overflow-visible rounded-[16px] border bg-white/[0.035] transition ${
                       errors.phone
-                        ? "border-red-500/60 bg-red-500/[0.04]"
+                        ? "border-red-500/60"
                         : "border-white/[0.09] hover:border-white/15 focus-within:border-white/25"
                     }`}
                   >
@@ -993,7 +991,7 @@ export function HelpPage() {
                             "15px 0 0 15px",
 
                           background:
-                            "rgba(255,255,255,.015)"
+                            "transparent"
                         },
 
                         buttonContentWrapperStyle:
@@ -1031,7 +1029,10 @@ export function HelpPage() {
                                 "hidden",
 
                               boxShadow:
-                                "0 24px 70px rgba(0,0,0,.75)"
+                                "0 24px 70px rgba(0,0,0,.75)",
+
+                              zIndex:
+                                9999
                             },
 
                             listItemStyle:
@@ -1080,7 +1081,7 @@ export function HelpPage() {
 
                 <div
                   ref={topicRef}
-                  className="relative z-30"
+                  className="relative z-20"
                 >
                   <span className="mb-2 block font-subtitle text-xs">
                     Sujet
@@ -1094,10 +1095,10 @@ export function HelpPage() {
                           !current
                       )
                     }
-                    className={`flex min-h-[54px] w-full items-center justify-between gap-4 rounded-[15px] border px-4 text-left transition ${
+                    className={`flex min-h-[54px] w-full items-center justify-between gap-4 rounded-[15px] border bg-white/[0.035] px-4 text-left transition ${
                       topicOpen
-                        ? "border-white/25 bg-white/[0.055]"
-                        : "border-white/[0.09] bg-white/[0.035] hover:border-white/15 hover:bg-white/[0.045]"
+                        ? "border-white/25"
+                        : "border-white/[0.09] hover:border-white/15"
                     }`}
                     aria-expanded={
                       topicOpen
@@ -1186,7 +1187,7 @@ export function HelpPage() {
                   </span>
 
                   <input
-                    className="form-input min-h-[54px]"
+                    className="form-input min-h-[54px] !bg-white/[0.035] focus:!outline-none focus-visible:!outline-none focus:!ring-0 focus:!ring-offset-0"
                     placeholder="B4F-WEB-…"
                     value={
                       form.orderReference
@@ -1215,9 +1216,9 @@ export function HelpPage() {
                   </span>
 
                   <textarea
-                    className={`form-input min-h-36 resize-y py-4 ${
+                    className={`form-input min-h-36 resize-y py-4 !bg-white/[0.035] focus:!outline-none focus-visible:!outline-none focus:!ring-0 focus:!ring-offset-0 ${
                       errors.message
-                        ? "border-red-500/60 bg-red-500/[0.04]"
+                        ? "border-red-500/60"
                         : ""
                     }`}
                     value={

@@ -19,7 +19,6 @@ import { AgencyStats } from "../components/AgencyStats";
 import { PartnersSection } from "../components/PartnersSection";
 import { Reveal } from "../components/Reveal";
 import { Seo } from "../components/Seo";
-import { TicketBenefitsPreview } from "../components/TicketBenefitsPreview";
 
 import { media } from "../data/media";
 
@@ -611,7 +610,6 @@ export function HomePage() {
       <PartnersSection />
 
       <AgencyStats />
-      <TicketBenefitsPreview />
       <section
         className="
           relative

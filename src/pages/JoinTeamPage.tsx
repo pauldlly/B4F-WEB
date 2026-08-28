@@ -24,7 +24,6 @@ import {
   type ChangeEvent,
   type FormEvent,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -339,15 +338,6 @@ export function JoinTeamPage() {
       | "error"
     >("idle");
 
-  const promoterNumber =
-    (
-      import.meta.env
-        .VITE_HIRING_WHATSAPP_NUMBER ||
-      "33652195888"
-    ).replace(
-      /\D/g,
-      "",
-    );
 
   /* =====================================================
      CLOSE DROPDOWNS
@@ -529,6 +519,7 @@ export function JoinTeamPage() {
       sm:!rounded-[16px]
       sm:!px-4
       sm:!text-sm
+      !bg-white/[0.035]
       outline-none
       ring-0
       focus:outline-none
@@ -538,7 +529,7 @@ export function JoinTeamPage() {
         errors[
           field
         ]
-          ? "border-red-500/70 bg-red-500/[0.04] focus:border-red-400"
+          ? "border-red-500/70 !bg-white/[0.035] focus:border-red-400"
           : ""
       }
 
@@ -1143,124 +1134,6 @@ export function JoinTeamPage() {
   };
 
   /* =====================================================
-     WHATSAPP
-  ===================================================== */
-
-  const whatsappUrl =
-    useMemo(() => {
-      const text = [
-        "Bonjour B4F, je souhaite rejoindre l’équipe 👋",
-        "",
-
-        `Prénom : ${form.firstName}`,
-        `Nom : ${form.lastName}`,
-        `Âge : ${form.age}`,
-        `Téléphone : ${form.phone}`,
-        `E-mail : ${form.email}`,
-
-        `Instagram : ${
-          form.instagram ||
-          "Non renseigné"
-        }`,
-
-        "",
-
-        `Poste : ${form.role}`,
-
-        `Disponibilités : ${form.startDate} → ${form.endDate}`,
-
-        "",
-
-        `Besoin d’un logement : ${
-          form.housingNeeded ===
-          "yes"
-            ? "Oui"
-            : "Non"
-        }`,
-
-        `Dates de logement : ${
-          form.housingNeeded ===
-          "yes"
-            ? `${form.housingStartDate} → ${form.housingEndDate}`
-            : "Non"
-        }`,
-
-        "",
-
-        `Langues : ${
-          form.languages ||
-          "Non renseignées"
-        }`,
-
-        `Expérience : ${
-          form.experience ||
-          "Non renseignée"
-        }`,
-
-        `Pourquoi B4F : ${
-          form.message ||
-          "Non renseigné"
-        }`,
-
-        "",
-
-        `CV : ${
-          cv
-            ? `${cv.name} — à joindre`
-            : "Non joint"
-        }`,
-
-        ...(isPromoter
-          ? [
-              `Vidéo de présentation : ${
-                presentationVideo
-                  ? `${presentationVideo.name} — à joindre`
-                  : "Non jointe"
-              }`,
-            ]
-          : []),
-
-        ...(isCreative
-          ? [
-              `Portfolio / liens : ${
-                form.portfolioLinks ||
-                "Non renseigné"
-              }`,
-
-              `Réalisations : ${
-                workSamples.length
-                  ? workSamples
-                      .map(
-                        (
-                          file,
-                        ) =>
-                          file.name,
-                      )
-                      .join(
-                        ", ",
-                      )
-                  : "Non jointes"
-              }`,
-            ]
-          : []),
-      ].join(
-        "\n",
-      );
-
-      return `https://wa.me/${promoterNumber}?text=${encodeURIComponent(
-        text,
-      )}`;
-    }, [
-      cv,
-      form,
-      isCreative,
-      isPromoter,
-      presentationVideo,
-      promoterNumber,
-      workSamples,
-    ]);
-
-  /* =====================================================
      SUBMIT
   ===================================================== */
 
@@ -1297,11 +1170,22 @@ export function JoinTeamPage() {
           .VITE_HIRING_FORM_ENDPOINT?.trim();
 
       if (
-        endpoint
+        !endpoint
       ) {
-        try {
-          const body =
-            new FormData();
+        setSubmitState(
+          "error",
+        );
+
+        setSubmitError(
+          "Le service d’envoi des candidatures n’est pas configuré. Contacte l’équipe B4F.",
+        );
+
+        return;
+      }
+
+      try {
+        const body =
+          new FormData();
 
           Object.entries(
             form,
@@ -1387,55 +1271,90 @@ export function JoinTeamPage() {
             );
           }
 
-          setSubmitState(
-            "success",
-          );
+        setSubmitState(
+          "success",
+        );
 
-          setSubmitError(
-            "",
-          );
+        setSubmitError(
+          "",
+        );
 
-          return;
-        } catch (
-          error
+        /*
+         * Réinitialise complètement
+         * le formulaire après un envoi réussi.
+         */
+        setForm({
+          ...initialForm,
+        });
+
+        setErrors(
+          {},
+        );
+
+        setCv(
+          null,
+        );
+
+        setPresentationVideo(
+          null,
+        );
+
+        setWorkSamples(
+          [],
+        );
+
+        setFileError(
+          "",
+        );
+
+        setMediaError(
+          "",
+        );
+
+        setRoleOpen(
+          false,
+        );
+
+        setHousingOpen(
+          false,
+        );
+
+        /*
+         * Important pour vider réellement
+         * les <input type="file"> du navigateur.
+         */
+        formRef.current?.reset();
+
+        return;
+      } catch (
+        error
+      ) {
+        setSubmitState(
+          "error",
+        );
+
+        if (
+          error instanceof
+          TypeError
         ) {
-          setSubmitState(
-            "error",
+          setSubmitError(
+            "Impossible de contacter le serveur. Vérifie ta connexion internet puis réessaie.",
           );
-
-          if (
-            error instanceof
-            TypeError
-          ) {
-            setSubmitError(
-              "Impossible de contacter le serveur. Vérifie ta connexion internet puis réessaie.",
-            );
-          } else if (
-            error instanceof
-            Error
-          ) {
-            setSubmitError(
-              error.message,
-            );
-          } else {
-            setSubmitError(
-              "Une erreur est survenue pendant l’envoi de ta candidature.",
-            );
-          }
-
-          return;
+        } else if (
+          error instanceof
+          Error
+        ) {
+          setSubmitError(
+            error.message,
+          );
+        } else {
+          setSubmitError(
+            "Une erreur est survenue pendant l’envoi de ta candidature.",
+          );
         }
+
+        return;
       }
-
-      window.open(
-        whatsappUrl,
-        "_blank",
-        "noopener,noreferrer",
-      );
-
-      setSubmitState(
-        "success",
-      );
     };
 
   /* =====================================================
@@ -1761,10 +1680,10 @@ export function JoinTeamPage() {
           >
             <span className="pr-12">
               Barcelona · B4F ·
-              Summer 2026 · Work ·
+              Summer 2027 · Work ·
               Party · Meet · Live ·
               Barcelona · B4F ·
-              Summer 2026 · Work ·
+              Summer 2027 · Work ·
               Party · Meet · Live ·
             </span>
 
@@ -1773,10 +1692,10 @@ export function JoinTeamPage() {
               className="pr-12"
             >
               Barcelona · B4F ·
-              Summer 2026 · Work ·
+              Summer 2027 · Work ·
               Party · Meet · Live ·
               Barcelona · B4F ·
-              Summer 2026 · Work ·
+              Summer 2027 · Work ·
               Party · Meet · Live ·
             </span>
           </div>
@@ -3072,7 +2991,7 @@ export function JoinTeamPage() {
 
                       ${
                         errors.phone
-                          ? "border-red-500/60 bg-red-500/[0.04]"
+                          ? "border-red-500/60 bg-white/[0.035]"
                           : "border-white/[0.09] hover:border-white/15 focus-within:border-white/20"
                       }
                     `}
@@ -3156,7 +3075,7 @@ export function JoinTeamPage() {
                             "13px 0 0 13px",
 
                           background:
-                            "rgba(255,255,255,.018)",
+                            "transparent",
 
                           outline:
                             "none",
@@ -3395,7 +3314,7 @@ export function JoinTeamPage() {
 
                       ${
                         errors.role
-                          ? "border-red-500/60 bg-red-500/[0.04]"
+                          ? "border-red-500/60 bg-white/[0.035]"
                           : roleOpen
                             ? "border-secondary/35 bg-white/[0.055]"
                             : "border-white/[0.09] bg-white/[0.035] hover:border-white/15 hover:bg-white/[0.045]"
@@ -3809,7 +3728,7 @@ export function JoinTeamPage() {
 
                       ${
                         errors.housingNeeded
-                          ? "border-red-500/60 bg-red-500/[0.04]"
+                          ? "border-red-500/60 bg-white/[0.035]"
                           : housingOpen
                             ? "border-secondary/35 bg-white/[0.055]"
                             : "border-white/[0.09] bg-white/[0.035] hover:border-white/15 hover:bg-white/[0.045]"
@@ -4250,6 +4169,7 @@ export function JoinTeamPage() {
                       px-3.5
                       py-3.5
                       text-[13px]
+                      !bg-white/[0.035]
                       outline-none
                       ring-0
                       focus:outline-none
@@ -4297,6 +4217,7 @@ export function JoinTeamPage() {
                       px-3.5
                       py-3.5
                       text-[13px]
+                      !bg-white/[0.035]
                       outline-none
                       ring-0
                       focus:outline-none
@@ -4377,7 +4298,7 @@ export function JoinTeamPage() {
                         border
                         border-dashed
                         border-white/15
-                        bg-white/[0.025]
+                        bg-white/[0.035]
                         p-4
                         text-center
                         transition
@@ -4525,6 +4446,7 @@ export function JoinTeamPage() {
                           px-3.5
                           py-3.5
                           text-[13px]
+                          !bg-white/[0.035]
                           outline-none
                           ring-0
                           focus:outline-none
@@ -4558,7 +4480,7 @@ export function JoinTeamPage() {
                           border
                           border-dashed
                           border-white/15
-                          bg-white/[0.025]
+                          bg-white/[0.035]
                           p-4
                           text-center
                           transition
@@ -4689,7 +4611,7 @@ export function JoinTeamPage() {
                       border
                       border-dashed
                       border-white/15
-                      bg-white/[0.025]
+                      bg-white/[0.035]
                       p-4
                       text-center
                       transition
@@ -4842,7 +4764,7 @@ export function JoinTeamPage() {
 
                   <span>
                     Ta candidature a bien
-                    été préparée.
+                    été envoyée.
                   </span>
                 </div>
               )}

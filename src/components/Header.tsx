@@ -333,42 +333,6 @@ export function Header() {
             sm:gap-2
           "
         >
-          {/* =============================================
-              PARTY MATCH DESKTOP
-          ============================================== */}
-
-          <Link
-            to="/#party-match"
-            className="
-              hidden
-              h-11
-              items-center
-              gap-2
-              rounded-full
-              bg-secondary
-              px-5
-              font-subtitle
-              text-[10px]
-              uppercase
-              tracking-[0.1em]
-              text-ink
-              transition
-              hover:-translate-y-0.5
-              hover:brightness-105
-              xl:flex
-            "
-          >
-            <Sparkles
-              size={16}
-            />
-
-            Trouver ma soirée
-          </Link>
-
-          {/* =============================================
-              LANGUAGE
-          ============================================== */}
-
           <LanguageSwitcher />
 
           {/* =============================================
