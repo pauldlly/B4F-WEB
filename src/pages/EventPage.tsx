@@ -106,21 +106,154 @@ function formatExtraMoney(
 export function EventPage() {
   const {
     eventId,
+    affiliate,
   } =
-    useParams();
+    useParams<{
+      eventId?: string;
+      affiliate?: string;
+    }>();
 
   const navigate =
     useNavigate();
 
-  const id =
-    Number(
-      eventId,
+  /*
+   * LIEN NORMAL :
+   * /event/66
+   *
+   * LIEN AFFILIÉ :
+   * /paul-dailly:66
+   */
+  const affiliateData =
+    useMemo(
+      () => {
+        if (
+          !affiliate
+        ) {
+          return null;
+        }
+
+        const separatorIndex =
+          affiliate.lastIndexOf(
+            ":",
+          );
+
+        if (
+          separatorIndex <=
+            0 ||
+          separatorIndex >=
+            affiliate.length -
+              1
+        ) {
+          return null;
+        }
+
+        const promoterSlug =
+          decodeURIComponent(
+            affiliate.slice(
+              0,
+              separatorIndex,
+            ),
+          )
+            .trim()
+            .toLowerCase();
+
+        const affiliateEventId =
+          Number(
+            affiliate.slice(
+              separatorIndex +
+                1,
+            ),
+          );
+
+        if (
+          !promoterSlug ||
+          !Number.isFinite(
+            affiliateEventId,
+          ) ||
+          affiliateEventId <=
+            0
+        ) {
+          return null;
+        }
+
+        return {
+          promoterSlug,
+          eventId:
+            affiliateEventId,
+        };
+      },
+      [
+        affiliate,
+      ],
     );
 
+  const id =
+    eventId
+      ? Number(
+          eventId,
+        )
+      : affiliateData?.eventId ??
+        Number.NaN;
+
+  const isAffiliateLink =
+    Boolean(
+      affiliateData,
+    );
+
+  /*
+   * Un événement "visible uniquement dans l'app"
+   * reste caché de /events, mais peut être ouvert
+   * depuis un vrai lien affilié.
+   */
   const query =
     useEventDetail(
       id,
+      isAffiliateLink,
     );
+
+  /*
+   * On conserve la référence d'affiliation pendant
+   * la navigation jusqu'au panier / checkout.
+   *
+   * Le checkout pourra ensuite envoyer :
+   * - promoter_reference = promoterSlug
+   * - affiliate_scope_type = "event"
+   * - affiliate_scope_id = eventId
+   */
+  useEffect(
+    () => {
+      if (
+        !affiliateData
+      ) {
+        return;
+      }
+
+      try {
+        window.localStorage.setItem(
+          "b4f_affiliate_reference",
+          affiliateData.promoterSlug,
+        );
+
+        window.localStorage.setItem(
+          "b4f_affiliate_scope_type",
+          "event",
+        );
+
+        window.localStorage.setItem(
+          "b4f_affiliate_scope_id",
+          String(
+            affiliateData.eventId,
+          ),
+        );
+      } catch {
+        // Le lien doit quand même fonctionner
+        // même si le stockage navigateur est indisponible.
+      }
+    },
+    [
+      affiliateData,
+    ],
+  );
 
   const {
     addItem,
@@ -845,10 +978,19 @@ export function EventPage() {
           `B4F EVENTS — ${event.name}`
         }
         path={
-          `/event/${event.id}`
+          affiliateData
+            ? `/${encodeURIComponent(
+                affiliateData.promoterSlug,
+              )}:${event.id}`
+            : `/event/${event.id}`
         }
         image={
           event.imageUrl
+        }
+        noIndex={
+          Boolean(
+            affiliateData,
+          )
         }
         structuredData={{
           "@context":

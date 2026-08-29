@@ -129,17 +129,6 @@ export function PacksPage() {
             ) ??
             [],
         )
-          .filter(
-            (
-              pack,
-            ) =>
-              !(
-                pack as PublicPack & {
-                  isVisibleOnlyInApp?:
-                    boolean;
-                }
-              ).isVisibleOnlyInApp,
-          )
           .sort(
             (
               a,

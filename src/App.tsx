@@ -1,5 +1,12 @@
-import { lazy, Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
+import {
+  lazy,
+  Suspense,
+} from "react";
+
+import {
+  Route,
+  Routes,
+} from "react-router-dom";
 
 import { AuthModal } from "./components/AuthModal";
 import { CartDrawer } from "./components/CartDrawer";
@@ -11,124 +18,293 @@ import { PageSkeleton } from "./components/Skeletons";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { WhatsAppAssistant } from "./components/WhatsAppAssistant";
 
-const HomePage = lazy(() =>
-  import("./pages/HomePage").then((module) => ({
-    default: module.HomePage,
-  }))
-);
+/* =========================================================
+   PAGES
+========================================================= */
 
-const EventsPage = lazy(() =>
-  import("./pages/EventsPage").then((module) => ({
-    default: module.EventsPage,
-  }))
-);
+const HomePage =
+  lazy(() =>
+    import(
+      "./pages/HomePage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.HomePage,
+      }),
+    ),
+  );
 
-const PacksPage = lazy(() =>
-  import("./pages/PacksPage").then((module) => ({
-    default: module.PacksPage,
-  }))
-);
+const EventsPage =
+  lazy(() =>
+    import(
+      "./pages/EventsPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.EventsPage,
+      }),
+    ),
+  );
 
-const AboutPage = lazy(() =>
-  import("./pages/AboutPage").then((module) => ({
-    default: module.AboutPage,
-  }))
-);
+const PacksPage =
+  lazy(() =>
+    import(
+      "./pages/PacksPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.PacksPage,
+      }),
+    ),
+  );
 
-const HelpPage = lazy(() =>
-  import("./pages/HelpPage").then((module) => ({
-    default: module.HelpPage,
-  }))
-);
+const AboutPage =
+  lazy(() =>
+    import(
+      "./pages/AboutPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.AboutPage,
+      }),
+    ),
+  );
 
-const JoinTeamPage = lazy(() =>
-  import("./pages/JoinTeamPage").then((module) => ({
-    default: module.JoinTeamPage,
-  }))
-);
+const HelpPage =
+  lazy(() =>
+    import(
+      "./pages/HelpPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.HelpPage,
+      }),
+    ),
+  );
 
-const EventPage = lazy(() =>
-  import("./pages/EventPage").then((module) => ({
-    default: module.EventPage,
-  }))
-);
+const JoinTeamPage =
+  lazy(() =>
+    import(
+      "./pages/JoinTeamPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.JoinTeamPage,
+      }),
+    ),
+  );
 
-const PackPage = lazy(() =>
-  import("./pages/PackPage").then((module) => ({
-    default: module.PackPage,
-  }))
-);
+const EventPage =
+  lazy(() =>
+    import(
+      "./pages/EventPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.EventPage,
+      }),
+    ),
+  );
 
-const CheckoutPage = lazy(() =>
-  import("./pages/CheckoutPage").then((module) => ({
-    default: module.CheckoutPage,
-  }))
-);
+const PackPage =
+  lazy(() =>
+    import(
+      "./pages/PackPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.PackPage,
+      }),
+    ),
+  );
 
-const PaymentReturnPage = lazy(() =>
-  import("./pages/PaymentReturnPage").then((module) => ({
-    default: module.PaymentReturnPage,
-  }))
-);
+const CheckoutPage =
+  lazy(() =>
+    import(
+      "./pages/CheckoutPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.CheckoutPage,
+      }),
+    ),
+  );
 
-const MyTicketsPage = lazy(() =>
-  import("./pages/MyTicketsPage").then((module) => ({
-    default: module.MyTicketsPage,
-  }))
-);
+const PaymentReturnPage =
+  lazy(() =>
+    import(
+      "./pages/PaymentReturnPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.PaymentReturnPage,
+      }),
+    ),
+  );
 
-const OrderPage = lazy(() =>
-  import("./pages/OrderPage").then((module) => ({
-    default: module.OrderPage,
-  }))
-);
+const MyTicketsPage =
+  lazy(() =>
+    import(
+      "./pages/MyTicketsPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.MyTicketsPage,
+      }),
+    ),
+  );
 
-const AccountPage = lazy(() =>
-  import("./pages/AccountPage").then((module) => ({
-    default: module.AccountPage,
-  }))
-);
+const OrderPage =
+  lazy(() =>
+    import(
+      "./pages/OrderPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.OrderPage,
+      }),
+    ),
+  );
 
-const AuthCallbackPage = lazy(() =>
-  import("./pages/AuthCallbackPage").then((module) => ({
-    default: module.AuthCallbackPage,
-  }))
-);
+const AccountPage =
+  lazy(() =>
+    import(
+      "./pages/AccountPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.AccountPage,
+      }),
+    ),
+  );
 
-/* Pages légales */
-const TermsPage = lazy(() =>
-  import("./pages/LegalPages").then((module) => ({
-    default: module.TermsPage,
-  }))
-);
+const AuthCallbackPage =
+  lazy(() =>
+    import(
+      "./pages/AuthCallbackPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.AuthCallbackPage,
+      }),
+    ),
+  );
 
-const PrivacyPage = lazy(() =>
-  import("./pages/LegalPages").then((module) => ({
-    default: module.PrivacyPage,
-  }))
-);
+/* =========================================================
+   PAGES LÉGALES
+========================================================= */
 
-const LegalNoticesPage = lazy(() =>
-  import("./pages/LegalPages").then((module) => ({
-    default: module.LegalNoticesPage,
-  }))
-);
+const TermsPage =
+  lazy(() =>
+    import(
+      "./pages/LegalPages"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.TermsPage,
+      }),
+    ),
+  );
 
-const CookiesPage = lazy(() =>
-  import("./pages/LegalPages").then((module) => ({
-    default: module.CookiesPage,
-  }))
-);
+const PrivacyPage =
+  lazy(() =>
+    import(
+      "./pages/LegalPages"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.PrivacyPage,
+      }),
+    ),
+  );
 
-const NotFoundPage = lazy(() =>
-  import("./pages/NotFoundPage").then((module) => ({
-    default: module.NotFoundPage,
-  }))
-);
+const LegalNoticesPage =
+  lazy(() =>
+    import(
+      "./pages/LegalPages"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.LegalNoticesPage,
+      }),
+    ),
+  );
+
+const CookiesPage =
+  lazy(() =>
+    import(
+      "./pages/LegalPages"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.CookiesPage,
+      }),
+    ),
+  );
+
+const NotFoundPage =
+  lazy(() =>
+    import(
+      "./pages/NotFoundPage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.NotFoundPage,
+      }),
+    ),
+  );
+
+/* =========================================================
+   APP
+========================================================= */
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-ink text-white">
+    <div
+      className="
+        min-h-screen
+        bg-ink
+        text-white
+      "
+    >
       <ScrollToTop />
 
       <CatalogRealtimeSync />
@@ -136,119 +312,221 @@ export default function App() {
       <Header />
 
       <main>
-        <Suspense fallback={<PageSkeleton />}>
+        <Suspense
+          fallback={
+            <PageSkeleton />
+          }
+        >
           <Routes>
-            {/* Pages principales */}
+            {/* =================================================
+                HOME
+            ================================================= */}
+
             <Route
               path="/"
-              element={<HomePage />}
+              element={
+                <HomePage />
+              }
             />
+
+            {/* =================================================
+                CATALOGUE
+            ================================================= */}
 
             <Route
               path="/events"
-              element={<EventsPage />}
+              element={
+                <EventsPage />
+              }
             />
 
             <Route
               path="/packs"
-              element={<PacksPage />}
+              element={
+                <PacksPage />
+              }
             />
+
+            {/* =================================================
+                AUTRES PAGES
+            ================================================= */}
 
             <Route
               path="/about"
-              element={<AboutPage />}
+              element={
+                <AboutPage />
+              }
             />
 
             <Route
               path="/aide"
-              element={<HelpPage />}
+              element={
+                <HelpPage />
+              }
             />
 
             <Route
               path="/rejoindre"
-              element={<JoinTeamPage />}
+              element={
+                <JoinTeamPage />
+              }
             />
 
-            {/* Événements avec promoteur */}
-            <Route
-              path="/:promoterReference/event/:eventId"
-              element={<EventPage />}
-            />
+            {/* =================================================
+                ÉVÉNEMENT NORMAL
 
-            <Route
-              path="/:promoterReference/pack/:packId"
-              element={<PackPage />}
-            />
+                Exemple :
+                /event/66
+            ================================================= */}
 
-            {/* Événements classiques */}
             <Route
               path="/event/:eventId"
-              element={<EventPage />}
+              element={
+                <EventPage />
+              }
             />
+
+            {/* =================================================
+                LIEN AFFILIÉ ÉVÉNEMENT
+
+                Exemple :
+                /paul-dailly:66
+
+                affiliate =
+                "paul-dailly:66"
+
+                EventPage extrait :
+                promoter = paul-dailly
+                eventId = 66
+            ================================================= */}
+
+            <Route
+              path="/:affiliate"
+              element={
+                <EventPage />
+              }
+            />
+
+            {/* =================================================
+                PACK NORMAL
+            ================================================= */}
 
             <Route
               path="/pack/:packId"
-              element={<PackPage />}
+              element={
+                <PackPage />
+              }
             />
 
-            {/* Paiement */}
+            {/* =================================================
+                ANCIEN LIEN PACK PROMOTEUR
+
+                Conservé pour le moment.
+            ================================================= */}
+
+            <Route
+              path="/:promoterReference/pack/:packId"
+              element={
+                <PackPage />
+              }
+            />
+
+            {/* =================================================
+                PAIEMENT
+            ================================================= */}
+
             <Route
               path="/checkout"
-              element={<CheckoutPage />}
+              element={
+                <CheckoutPage />
+              }
             />
 
             <Route
               path="/paiement/retour"
-              element={<PaymentReturnPage />}
+              element={
+                <PaymentReturnPage />
+              }
             />
 
-            {/* Billets / commandes */}
+            {/* =================================================
+                BILLETS / COMMANDES
+            ================================================= */}
+
             <Route
               path="/mes-billets"
-              element={<MyTicketsPage />}
+              element={
+                <MyTicketsPage />
+              }
             />
 
             <Route
               path="/commande/:orderId"
-              element={<OrderPage />}
+              element={
+                <OrderPage />
+              }
             />
 
-            {/* Compte */}
+            {/* =================================================
+                COMPTE
+            ================================================= */}
+
             <Route
               path="/compte"
-              element={<AccountPage />}
+              element={
+                <AccountPage />
+              }
             />
 
             <Route
               path="/auth/callback"
-              element={<AuthCallbackPage />}
+              element={
+                <AuthCallbackPage />
+              }
             />
 
-            {/* Pages légales */}
+            {/* =================================================
+                PAGES LÉGALES
+            ================================================= */}
+
             <Route
               path="/cgv"
-              element={<TermsPage />}
+              element={
+                <TermsPage />
+              }
             />
 
             <Route
               path="/confidentialite"
-              element={<PrivacyPage />}
+              element={
+                <PrivacyPage />
+              }
             />
 
             <Route
               path="/mentions-legales"
-              element={<LegalNoticesPage />}
+              element={
+                <LegalNoticesPage />
+              }
             />
 
             <Route
               path="/cookies"
-              element={<CookiesPage />}
+              element={
+                <CookiesPage />
+              }
             />
 
-            {/* 404 - toujours en dernier */}
+            {/* =================================================
+                404
+                TOUJOURS EN DERNIER
+            ================================================= */}
+
             <Route
               path="*"
-              element={<NotFoundPage />}
+              element={
+                <NotFoundPage />
+              }
             />
           </Routes>
         </Suspense>

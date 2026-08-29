@@ -23,9 +23,15 @@ export const catalogKeys = {
     filters,
   ],
 
-  event: (eventId: number) => [
+  event: (
+    eventId: number,
+    allowAppOnly = false,
+  ) => [
     "public-event",
     eventId,
+    allowAppOnly
+      ? "affiliate"
+      : "public",
   ],
 
   packs: (filters: CatalogFilters) => [
@@ -146,16 +152,19 @@ export function usePacksInfinite(
 
 export function useEventDetail(
   eventId: number,
+  allowAppOnly = false,
 ) {
   return useQuery({
     queryKey:
       catalogKeys.event(
         eventId,
+        allowAppOnly,
       ),
 
     queryFn: () =>
       getEventDetail(
         eventId,
+        allowAppOnly,
       ),
 
     enabled:

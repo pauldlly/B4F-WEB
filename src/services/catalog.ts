@@ -735,6 +735,7 @@ export async function getEventsPage({
 
 export async function getEventDetail(
   eventId: number,
+  allowAppOnly = false,
 ): Promise<
   PublicEvent | null
 > {
@@ -761,13 +762,8 @@ export async function getEventDetail(
      EVENT
   ===================================================== */
 
-  const {
-    data:
-      eventRow,
-    error:
-      eventError,
-  } =
-    await supabase
+  let eventQuery =
+    supabase
       .from(
         "Event",
       )
@@ -794,8 +790,7 @@ export async function getEventDetail(
           soldout,
           status,
           is_visible_only_in_packs,
-          is_visible_only_in_app
-        `,
+          is_visible_only_in_app        `,
       )
       .eq(
         "id",
@@ -804,11 +799,33 @@ export async function getEventDetail(
       .eq(
         "status",
         "active",
-      )
-      .eq(
+      );
+
+  /*
+   * Accès public classique :
+   * on refuse les événements app-only.
+   *
+   * Accès affilié :
+   * on peut charger l'événement même s'il est
+   * is_visible_only_in_app = true.
+   */
+  if (
+    !allowAppOnly
+  ) {
+    eventQuery =
+      eventQuery.eq(
         "is_visible_only_in_app",
         false,
-      )
+      );
+  }
+
+  const {
+    data:
+      eventRow,
+    error:
+      eventError,
+  } =
+    await eventQuery
       .maybeSingle();
 
   if (
