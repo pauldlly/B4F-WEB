@@ -6,13 +6,13 @@ import {
   LockKeyhole,
   Mail,
   UserRound,
-  X
+  X,
 } from "lucide-react";
 
 import {
   type FormEvent,
   useEffect,
-  useState
+  useState,
 } from "react";
 
 import { media } from "../data/media";
@@ -20,7 +20,9 @@ import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 import { useI18n } from "../i18n/LanguageProvider";
 import { useAuth } from "../providers/AuthProvider";
 
-type AuthMode = "login" | "register";
+type AuthMode =
+  | "login"
+  | "register";
 
 type FieldErrors = {
   name?: string;
@@ -28,10 +30,14 @@ type FieldErrors = {
   password?: string;
 };
 
-type Feedback = {
-  type: "success" | "error";
-  message: string;
-} | null;
+type Feedback =
+  | {
+      type:
+        | "success"
+        | "error";
+      message: string;
+    }
+  | null;
 
 export function AuthModal() {
   const {
@@ -42,141 +48,257 @@ export function AuthModal() {
     openAuth,
     signIn,
     signUp,
-    resetPassword
+    resetPassword,
   } = useAuth();
 
-  const { t } = useI18n();
+  const {
+    t,
+  } = useI18n();
 
-  const [mode, setMode] =
-    useState<AuthMode>(authMode);
+  const [
+    mode,
+    setMode,
+  ] =
+    useState<AuthMode>(
+      authMode,
+    );
 
-  const [name, setName] =
+  const [
+    name,
+    setName,
+  ] =
     useState("");
 
-  const [email, setEmail] =
+  const [
+    email,
+    setEmail,
+  ] =
     useState("");
 
-  const [password, setPassword] =
+  const [
+    password,
+    setPassword,
+  ] =
     useState("");
 
-  const [visiblePassword, setVisiblePassword] =
+  const [
+    visiblePassword,
+    setVisiblePassword,
+  ] =
     useState(false);
 
-  const [loading, setLoading] =
+  const [
+    loading,
+    setLoading,
+  ] =
     useState(false);
 
-  const [errors, setErrors] =
-    useState<FieldErrors>({});
+  const [
+    errors,
+    setErrors,
+  ] =
+    useState<FieldErrors>(
+      {},
+    );
 
-  const [feedback, setFeedback] =
-    useState<Feedback>(null);
+  const [
+    feedback,
+    setFeedback,
+  ] =
+    useState<Feedback>(
+      null,
+    );
 
-  useBodyScrollLock(authOpen);
+  useBodyScrollLock(
+    authOpen,
+  );
 
   useEffect(() => {
-    setMode(authMode);
-    setErrors({});
-    setFeedback(null);
-    setVisiblePassword(false);
-  }, [authMode, authOpen]);
+    setMode(
+      authMode,
+    );
 
-  if (!authOpen) {
+    setErrors(
+      {},
+    );
+
+    setFeedback(
+      null,
+    );
+
+    setVisiblePassword(
+      false,
+    );
+  }, [
+    authMode,
+    authOpen,
+  ]);
+
+  if (
+    !authOpen
+  ) {
     return null;
   }
 
+  /* =====================================================
+     CHANGE MODE
+  ===================================================== */
+
   const changeMode = (
-    next: AuthMode
+    next:
+      AuthMode,
   ) => {
-    setMode(next);
-    setErrors({});
-    setFeedback(null);
-    setPassword("");
-    setVisiblePassword(false);
+    setMode(
+      next,
+    );
 
-    openAuth(next);
-  };
+    setErrors(
+      {},
+    );
 
-  const clearError = (
-    field: keyof FieldErrors
-  ) => {
-    setErrors((current) => {
-      if (!current[field]) {
-        return current;
-      }
+    setFeedback(
+      null,
+    );
 
-      const next = {
-        ...current
-      };
+    setPassword(
+      "",
+    );
 
-      delete next[field];
+    setVisiblePassword(
+      false,
+    );
 
-      return next;
-    });
-
-    if (
-      feedback?.type === "error"
-    ) {
-      setFeedback(null);
-    }
-  };
-
-  const validate = () => {
-    const nextErrors: FieldErrors = {};
-
-    if (
-      mode === "register" &&
-      !name.trim()
-    ) {
-      nextErrors.name =
-        "Tu as oublié ton prénom et ton nom.";
-    } else if (
-      mode === "register" &&
-      name.trim().length < 2
-    ) {
-      nextErrors.name =
-        "Ton nom semble incomplet.";
-    }
-
-    if (!email.trim()) {
-      nextErrors.email =
-        "Tu as oublié ton adresse e-mail.";
-    } else {
-      const emailRegex =
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      if (
-        !emailRegex.test(
-          email.trim()
-        )
-      ) {
-        nextErrors.email =
-          "Entre une adresse e-mail valide.";
-      }
-    }
-
-    if (!password) {
-      nextErrors.password =
-        "Tu as oublié ton mot de passe.";
-    } else if (
-      password.length < 8
-    ) {
-      nextErrors.password =
-        "Le mot de passe doit contenir au moins 8 caractères.";
-    }
-
-    setErrors(nextErrors);
-
-    return (
-      Object.keys(nextErrors)
-        .length === 0
+    openAuth(
+      next,
     );
   };
 
+  /* =====================================================
+     CLEAR ERROR
+  ===================================================== */
+
+  const clearError = (
+    field:
+      keyof FieldErrors,
+  ) => {
+    setErrors(
+      (
+        current,
+      ) => {
+        if (
+          !current[
+            field
+          ]
+        ) {
+          return current;
+        }
+
+        const next = {
+          ...current,
+        };
+
+        delete next[
+          field
+        ];
+
+        return next;
+      },
+    );
+
+    if (
+      feedback?.type ===
+      "error"
+    ) {
+      setFeedback(
+        null,
+      );
+    }
+  };
+
+  /* =====================================================
+     VALIDATION
+  ===================================================== */
+
+  const validate =
+    () => {
+      const nextErrors:
+        FieldErrors =
+        {};
+
+      if (
+        mode ===
+          "register" &&
+        !name.trim()
+      ) {
+        nextErrors.name =
+          "Tu as oublié ton prénom et ton nom.";
+      } else if (
+        mode ===
+          "register" &&
+        name.trim()
+          .length < 2
+      ) {
+        nextErrors.name =
+          "Ton nom semble incomplet.";
+      }
+
+      if (
+        !email.trim()
+      ) {
+        nextErrors.email =
+          "Tu as oublié ton adresse e-mail.";
+      } else {
+        const emailRegex =
+          /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (
+          !emailRegex.test(
+            email.trim(),
+          )
+        ) {
+          nextErrors.email =
+            "Entre une adresse e-mail valide.";
+        }
+      }
+
+      if (
+        !password
+      ) {
+        nextErrors.password =
+          "Tu as oublié ton mot de passe.";
+      } else if (
+        password.length <
+        8
+      ) {
+        nextErrors.password =
+          "Le mot de passe doit contenir au moins 8 caractères.";
+      }
+
+      setErrors(
+        nextErrors,
+      );
+
+      return (
+        Object.keys(
+          nextErrors,
+        ).length ===
+        0
+      );
+    };
+
+  /* =====================================================
+     FRIENDLY ERRORS
+  ===================================================== */
+
   const getFriendlyError = (
-    error: unknown
+    error:
+      unknown,
   ) => {
     if (
-      !(error instanceof Error)
+      !(
+        error instanceof
+        Error
+      )
     ) {
       return "Une erreur est survenue. Réessaie dans quelques instants.";
     }
@@ -186,10 +308,10 @@ export function AuthModal() {
 
     if (
       message.includes(
-        "invalid login credentials"
+        "invalid login credentials",
       ) ||
       message.includes(
-        "invalid credentials"
+        "invalid credentials",
       )
     ) {
       return "E-mail ou mot de passe incorrect.";
@@ -197,7 +319,7 @@ export function AuthModal() {
 
     if (
       message.includes(
-        "email not confirmed"
+        "email not confirmed",
       )
     ) {
       return "Ton adresse e-mail n’a pas encore été confirmée. Vérifie ta boîte mail.";
@@ -205,10 +327,10 @@ export function AuthModal() {
 
     if (
       message.includes(
-        "user already registered"
+        "user already registered",
       ) ||
       message.includes(
-        "already registered"
+        "already registered",
       )
     ) {
       return "Un compte existe déjà avec cette adresse e-mail.";
@@ -216,14 +338,14 @@ export function AuthModal() {
 
     if (
       message.includes(
-        "password should be"
+        "password should be",
       ) ||
       (
         message.includes(
-          "password"
+          "password",
         ) &&
         message.includes(
-          "characters"
+          "characters",
         )
       )
     ) {
@@ -232,10 +354,10 @@ export function AuthModal() {
 
     if (
       message.includes(
-        "rate limit"
+        "rate limit",
       ) ||
       message.includes(
-        "too many requests"
+        "too many requests",
       )
     ) {
       return "Trop de tentatives. Attends quelques instants avant de réessayer.";
@@ -243,10 +365,10 @@ export function AuthModal() {
 
     if (
       message.includes(
-        "network"
+        "network",
       ) ||
       message.includes(
-        "fetch"
+        "fetch",
       )
     ) {
       return "Impossible de contacter le serveur. Vérifie ta connexion internet.";
@@ -255,155 +377,361 @@ export function AuthModal() {
     return error.message;
   };
 
-  const submit = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
-    event.preventDefault();
+  /* =====================================================
+     SUBMIT
+  ===================================================== */
 
-    setFeedback(null);
+  const submit =
+    async (
+      event:
+        FormEvent<HTMLFormElement>,
+    ) => {
+      event.preventDefault();
 
-    if (!validate()) {
-      return;
-    }
-
-    try {
-      setLoading(true);
+      setFeedback(
+        null,
+      );
 
       if (
-        mode === "login"
+        !validate()
       ) {
-        await signIn(
-          email.trim(),
-          password
+        return;
+      }
+
+      try {
+        setLoading(
+          true,
+        );
+
+        if (
+          mode ===
+          "login"
+        ) {
+          await signIn(
+            email.trim(),
+            password,
+          );
+
+          return;
+        }
+
+        const result =
+          await signUp(
+            name.trim(),
+            email.trim(),
+            password,
+          );
+
+        if (
+          result.needsConfirmation
+        ) {
+          setFeedback(
+            {
+              type:
+                "success",
+
+              message:
+                "Compte créé ! Vérifie ta boîte e-mail pour confirmer ton inscription.",
+            },
+          );
+        }
+      } catch (
+        error:
+          unknown
+      ) {
+        setFeedback(
+          {
+            type:
+              "error",
+
+            message:
+              getFriendlyError(
+                error,
+              ),
+          },
+        );
+      } finally {
+        setLoading(
+          false,
+        );
+      }
+    };
+
+  /* =====================================================
+     FORGOT PASSWORD
+  ===================================================== */
+
+  const forgot =
+    async () => {
+      setFeedback(
+        null,
+      );
+
+      if (
+        !email.trim()
+      ) {
+        setErrors(
+          (
+            current,
+          ) => ({
+            ...current,
+
+            email:
+              "Entre ton adresse e-mail pour recevoir le lien.",
+          }),
         );
 
         return;
       }
 
-      const result =
-        await signUp(
-          name.trim(),
-          email.trim(),
-          password
-        );
+      const emailRegex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (
-        result.needsConfirmation
+        !emailRegex.test(
+          email.trim(),
+        )
       ) {
-        setFeedback({
-          type: "success",
-          message:
-            "Compte créé ! Vérifie ta boîte e-mail pour confirmer ton inscription."
-        });
+        setErrors(
+          (
+            current,
+          ) => ({
+            ...current,
+
+            email:
+              "Entre une adresse e-mail valide.",
+          }),
+        );
+
+        return;
       }
-    } catch (
-      error: unknown
-    ) {
-      setFeedback({
-        type: "error",
-        message:
-          getFriendlyError(
-            error
-          )
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const forgot = async () => {
-    setFeedback(null);
+      try {
+        setLoading(
+          true,
+        );
 
-    if (!email.trim()) {
-      setErrors((current) => ({
-        ...current,
-        email:
-          "Entre ton adresse e-mail pour recevoir le lien."
-      }));
+        await resetPassword(
+          email.trim(),
+        );
 
-      return;
-    }
+        setFeedback(
+          {
+            type:
+              "success",
 
-    const emailRegex =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            message:
+              "Lien envoyé ! Vérifie ta boîte e-mail pour réinitialiser ton mot de passe.",
+          },
+        );
+      } catch (
+        error:
+          unknown
+      ) {
+        setFeedback(
+          {
+            type:
+              "error",
 
-    if (
-      !emailRegex.test(
-        email.trim()
-      )
-    ) {
-      setErrors((current) => ({
-        ...current,
-        email:
-          "Entre une adresse e-mail valide."
-      }));
+            message:
+              getFriendlyError(
+                error,
+              ),
+          },
+        );
+      } finally {
+        setLoading(
+          false,
+        );
+      }
+    };
 
-      return;
-    }
+  /* =====================================================
+     INPUT BASE CLASS
+  ===================================================== */
 
-    try {
-      setLoading(true);
+  const inputBaseClass = `
+    min-h-[54px]
+    w-full
+    min-w-0
+    max-w-full
+    rounded-[15px]
+    border
+    bg-white/[0.035]
+    font-body
+    text-sm
+    text-white
+    transition
+    placeholder:text-white/20
 
-      await resetPassword(
-        email.trim()
-      );
+    !outline-none
+    focus:!outline-none
+    focus-visible:!outline-none
 
-      setFeedback({
-        type: "success",
-        message:
-          "Lien envoyé ! Vérifie ta boîte e-mail pour réinitialiser ton mot de passe."
-      });
-    } catch (
-      error: unknown
-    ) {
-      setFeedback({
-        type: "error",
-        message:
-          getFriendlyError(
-            error
-          )
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    !ring-0
+    focus:!ring-0
+    focus-visible:!ring-0
+
+    focus:!ring-offset-0
+    focus-visible:!ring-offset-0
+
+    focus:shadow-none
+    focus-visible:shadow-none
+  `;
+
+  /* =====================================================
+     RENDER
+  ===================================================== */
 
   return (
-    <div className="fixed inset-0 z-[95] flex items-end justify-center overflow-x-hidden bg-black/85 backdrop-blur-xl md:items-center md:p-6">
+    <div
+      className="
+        fixed
+        inset-0
+        z-[95]
+        flex
+        items-end
+        justify-center
+        overflow-x-hidden
+        bg-black/85
+        backdrop-blur-xl
+        md:items-center
+        md:p-6
+      "
+    >
+      {/* BACKDROP */}
+
       <button
         type="button"
         aria-label={t(
-          "common.close"
+          "common.close",
         )}
-        onClick={closeAuth}
-        className="absolute inset-0 cursor-default"
+        onClick={
+          closeAuth
+        }
+        className="
+          absolute
+          inset-0
+          cursor-default
+        "
       />
 
-      <section className="relative z-10 grid h-[100dvh] w-full max-w-full overflow-x-hidden overflow-y-hidden bg-[#101010] shadow-[0_35px_120px_rgba(0,0,0,.8)] md:h-[min(740px,calc(100dvh-48px))] md:max-w-[1080px] md:grid-cols-[0.9fr_1.1fr] md:rounded-[32px] md:border md:border-white/[0.09]">
-        <aside className="relative hidden min-h-0 min-w-0 overflow-hidden md:block">
+      {/* MODAL */}
+
+      <section
+        className="
+          relative
+          z-10
+          grid
+          h-[100dvh]
+          w-full
+          max-w-full
+          overflow-x-hidden
+          overflow-y-hidden
+          bg-[#101010]
+          shadow-[0_35px_120px_rgba(0,0,0,.8)]
+
+          md:h-[min(740px,calc(100dvh-48px))]
+          md:max-w-[1080px]
+          md:grid-cols-[0.9fr_1.1fr]
+          md:rounded-[32px]
+          md:border
+          md:border-white/[0.09]
+        "
+      >
+        {/* =================================================
+            LEFT IMAGE
+        ================================================= */}
+
+        <aside
+          className="
+            relative
+            hidden
+            min-h-0
+            min-w-0
+            overflow-hidden
+            md:block
+          "
+        >
           <img
-            src={media.club}
+            src={
+              media.club
+            }
             alt="Ambiance B4F Barcelona"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="
+              absolute
+              inset-0
+              h-full
+              w-full
+              object-cover
+            "
           />
 
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.06)_0%,rgba(0,0,0,.2)_35%,rgba(0,0,0,.94)_100%)]" />
+          <div
+            className="
+              absolute
+              inset-0
+              bg-[linear-gradient(180deg,rgba(0,0,0,.06)_0%,rgba(0,0,0,.2)_35%,rgba(0,0,0,.94)_100%)]
+            "
+          />
 
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_5%,rgba(249,115,22,.20),transparent_34%),radial-gradient(circle_at_90%_85%,rgba(236,72,153,.15),transparent_35%)]" />
+          <div
+            className="
+              absolute
+              inset-0
+              bg-[radial-gradient(circle_at_15%_5%,rgba(249,115,22,.20),transparent_34%),radial-gradient(circle_at_90%_85%,rgba(236,72,153,.15),transparent_35%)]
+            "
+          />
 
-          <div className="relative flex h-full min-w-0 flex-col px-9 py-9">
+          <div
+            className="
+              relative
+              flex
+              h-full
+              min-w-0
+              flex-col
+              px-9
+              py-9
+            "
+          >
             <img
               src="/brand/b4f-header-white.png"
               alt="B4F Events"
-              className="w-28 object-contain lg:w-32"
+              className="
+                w-28
+                object-contain
+                lg:w-32
+              "
             />
 
-            <div className="mt-auto max-w-[390px] pb-1">
-              <span className="font-subtitle text-[10px] uppercase tracking-[0.2em] text-secondary">
+            <div
+              className="
+                mt-auto
+                max-w-[390px]
+                pb-1
+              "
+            >
+              <span
+                className="
+                  font-subtitle
+                  text-[10px]
+                  uppercase
+                  tracking-[0.2em]
+                  text-secondary
+                "
+              >
                 B4F Experience
               </span>
 
-              <h2 className="mt-4 font-title text-[clamp(2.8rem,4vw,4.3rem)] uppercase leading-[0.82] tracking-[-0.045em]">
+              <h2
+                className="
+                  mt-4
+                  font-title
+                  text-[clamp(2.8rem,4vw,4.3rem)]
+                  uppercase
+                  leading-[0.82]
+                "
+              >
                 Ta nuit.
 
                 <span className="block">
@@ -415,58 +743,186 @@ export function AuthModal() {
                 </span>
               </h2>
 
-              <p className="mt-5 max-w-[340px] font-body text-sm leading-6 text-white/50">
-                Retrouve tous tes billets, packs et
-                réservations B4F au même endroit.
+              <p
+                className="
+                  mt-5
+                  max-w-[340px]
+                  font-body
+                  text-sm
+                  leading-6
+                  text-white/50
+                "
+              >
+                Retrouve tous tes billets,
+                packs et réservations B4F
+                au même endroit.
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div
+                className="
+                  mt-6
+                  flex
+                  flex-wrap
+                  gap-2
+                "
+              >
                 {[
                   "Billets",
                   "Packs",
-                  "Réservations"
+                  "Réservations",
                 ].map(
-                  (item) => (
+                  (
+                    item,
+                  ) => (
                     <span
-                      key={item}
-                      className="rounded-full border border-white/15 bg-black/20 px-3 py-1.5 font-subtitle text-[9px] uppercase tracking-[0.14em] text-white/45 backdrop-blur"
+                      key={
+                        item
+                      }
+                      className="
+                        rounded-full
+                        border
+                        border-white/15
+                        bg-black/20
+                        px-3
+                        py-1.5
+                        font-subtitle
+                        text-[9px]
+                        uppercase
+                        tracking-[0.14em]
+                        text-white/45
+                        backdrop-blur
+                      "
                     >
-                      {item}
+                      {
+                        item
+                      }
                     </span>
-                  )
+                  ),
                 )}
               </div>
             </div>
           </div>
         </aside>
 
-        <div className="custom-scrollbar relative min-h-0 min-w-0 max-w-full overflow-x-hidden overflow-y-auto overscroll-contain">
-          <div className="pointer-events-none absolute -right-24 top-24 h-72 w-72 max-w-full rounded-full bg-secondary/[0.045] blur-[100px]" />
+        {/* =================================================
+            RIGHT
+        ================================================= */}
 
-          <div className="sticky top-0 z-20 flex min-h-[72px] w-full min-w-0 max-w-full items-center gap-3 overflow-x-hidden border-b border-white/[0.06] bg-[#101010]/90 px-4 backdrop-blur-2xl sm:px-5 md:px-7">
+        <div
+          className="
+            custom-scrollbar
+            relative
+            min-h-0
+            min-w-0
+            max-w-full
+            overflow-x-hidden
+            overflow-y-auto
+            overscroll-contain
+          "
+        >
+          <div
+            className="
+              pointer-events-none
+              absolute
+              -right-24
+              top-24
+              h-72
+              w-72
+              max-w-full
+              rounded-full
+              bg-secondary/[0.045]
+              blur-[100px]
+            "
+          />
+
+          {/* ===============================================
+              TOP BAR
+          ================================================ */}
+
+          <div
+            className="
+              sticky
+              top-0
+              z-20
+              flex
+              min-h-[72px]
+              w-full
+              min-w-0
+              max-w-full
+              items-center
+              gap-3
+              overflow-x-hidden
+              border-b
+              border-white/[0.06]
+              bg-[#101010]/90
+              px-4
+              backdrop-blur-2xl
+              sm:px-5
+              md:px-7
+            "
+          >
             <div className="shrink-0 md:hidden">
               <img
                 src="/brand/b4f-header-white.png"
                 alt="B4F Events"
-                className="h-9 w-16 object-contain object-left"
+                className="
+                  h-9
+                  w-16
+                  object-contain
+                  object-left
+                "
               />
             </div>
 
-            <div className="flex min-w-0 flex-1 items-center gap-2.5">
-              <div className="grid min-w-0 flex-1 grid-cols-2 rounded-[14px] border border-white/[0.07] bg-white/[0.035] p-1">
+            <div
+              className="
+                flex
+                min-w-0
+                flex-1
+                items-center
+                gap-2.5
+              "
+            >
+              <div
+                className="
+                  grid
+                  min-w-0
+                  flex-1
+                  grid-cols-2
+                  rounded-[14px]
+                  border
+                  border-white/[0.07]
+                  bg-white/[0.035]
+                  p-1
+                "
+              >
                 <button
                   type="button"
                   onClick={() =>
                     changeMode(
-                      "login"
+                      "login",
                     )
                   }
-                  className={`min-h-[42px] min-w-0 truncate rounded-[11px] px-2 font-subtitle text-[11px] transition-all duration-300 ${
-                    mode ===
-                    "login"
-                      ? "bg-white text-black shadow-[0_8px_30px_rgba(0,0,0,.25)]"
-                      : "text-white/30 hover:text-white/70"
-                  }`}
+                  className={`
+                    min-h-[42px]
+                    min-w-0
+                    truncate
+                    rounded-[11px]
+                    px-2
+                    font-subtitle
+                    text-[11px]
+                    transition-all
+                    duration-300
+                    focus:!outline-none
+                    focus-visible:!outline-none
+
+                    ${
+                      mode ===
+                      "login"
+                        ? "bg-white text-black shadow-[0_8px_30px_rgba(0,0,0,.25)]"
+                        : "text-white/30 hover:text-white/70"
+                    }
+                  `}
                 >
                   Connexion
                 </button>
@@ -475,15 +931,29 @@ export function AuthModal() {
                   type="button"
                   onClick={() =>
                     changeMode(
-                      "register"
+                      "register",
                     )
                   }
-                  className={`min-h-[42px] min-w-0 truncate rounded-[11px] px-2 font-subtitle text-[11px] transition-all duration-300 ${
-                    mode ===
-                    "register"
-                      ? "bg-white text-black shadow-[0_8px_30px_rgba(0,0,0,.25)]"
-                      : "text-white/30 hover:text-white/70"
-                  }`}
+                  className={`
+                    min-h-[42px]
+                    min-w-0
+                    truncate
+                    rounded-[11px]
+                    px-2
+                    font-subtitle
+                    text-[11px]
+                    transition-all
+                    duration-300
+                    focus:!outline-none
+                    focus-visible:!outline-none
+
+                    ${
+                      mode ===
+                      "register"
+                        ? "bg-white text-black shadow-[0_8px_30px_rgba(0,0,0,.25)]"
+                        : "text-white/30 hover:text-white/70"
+                    }
+                  `}
                 >
                   S’inscrire
                 </button>
@@ -491,29 +961,94 @@ export function AuthModal() {
 
               <button
                 type="button"
-                onClick={closeAuth}
-                className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-[14px] border border-white/[0.07] bg-white/[0.035] text-white/35 transition hover:bg-white/[0.08] hover:text-white"
+                onClick={
+                  closeAuth
+                }
+                className="
+                  grid
+                  h-[46px]
+                  w-[46px]
+                  shrink-0
+                  place-items-center
+                  rounded-[14px]
+                  border
+                  border-white/[0.07]
+                  bg-white/[0.035]
+                  text-white/35
+                  transition
+                  hover:bg-white/[0.08]
+                  hover:text-white
+                  focus:!outline-none
+                  focus-visible:!outline-none
+                "
                 aria-label={t(
-                  "common.close"
+                  "common.close",
                 )}
               >
-                <X size={18} />
+                <X
+                  size={18}
+                />
               </button>
             </div>
           </div>
 
-          <div className="relative mx-auto flex min-h-[calc(100%-72px)] w-full min-w-0 max-w-[570px] flex-col justify-center overflow-x-hidden px-5 py-8 sm:px-8 md:px-10 md:py-10">
+          {/* ===============================================
+              FORM CONTENT
+          ================================================ */}
+
+          <div
+            className="
+              relative
+              mx-auto
+              flex
+              min-h-[calc(100%-72px)]
+              w-full
+              min-w-0
+              max-w-[570px]
+              flex-col
+              justify-center
+              overflow-x-hidden
+              px-5
+              py-8
+              sm:px-8
+              md:px-10
+              md:py-10
+            "
+          >
+            {/* HEADER */}
+
             <div className="mb-7 min-w-0">
-              <span className="font-subtitle text-[10px] uppercase tracking-[0.2em] text-secondary">
-                {mode === "login"
+              <span
+                className="
+                  font-subtitle
+                  text-[10px]
+                  uppercase
+                  tracking-[0.2em]
+                  text-secondary
+                "
+              >
+                {mode ===
+                "login"
                   ? "Welcome back"
                   : "Bienvenue chez B4F"}
               </span>
 
-              <h2 className="mt-2 max-w-md break-words font-title text-[clamp(2.4rem,4vw,3.5rem)] uppercase leading-[0.86] tracking-[-0.035em]">
-                {mode === "login" ? (
+              <h2
+                className="
+                  mt-2
+                  max-w-md
+                  break-words
+                  font-title
+                  text-[clamp(2.4rem,4vw,3.5rem)]
+                  uppercase
+                  leading-[0.86]
+                "
+              >
+                {mode ===
+                "login" ? (
                   <>
                     Retrouve
+
                     <span className="block text-gradient">
                       tes soirées.
                     </span>
@@ -521,45 +1056,99 @@ export function AuthModal() {
                 ) : (
                   <>
                     Rejoins
+
                     <span className="block text-gradient">
-                      l’expérience.
+                      nous.
                     </span>
                   </>
                 )}
               </h2>
-
             </div>
 
+            {/* NOT CONFIGURED */}
+
             {!configured && (
-              <div className="mb-5 w-full max-w-full overflow-hidden rounded-[16px] border border-red-500/20 bg-red-500/[0.07] px-4 py-3">
-                <p className="break-words font-body text-xs leading-5 text-red-200">
+              <div
+                className="
+                  mb-5
+                  w-full
+                  max-w-full
+                  overflow-hidden
+                  rounded-[16px]
+                  border
+                  border-red-500/20
+                  bg-red-500/[0.07]
+                  px-4
+                  py-3
+                "
+              >
+                <p
+                  className="
+                    break-words
+                    font-body
+                    text-xs
+                    leading-5
+                    text-red-200
+                  "
+                >
                   {t(
-                    "auth.notConfigured"
+                    "auth.notConfigured",
                   )}
                 </p>
               </div>
             )}
 
+            {/* =============================================
+                FORM
+            ============================================== */}
+
             <form
-              onSubmit={submit}
+              onSubmit={
+                submit
+              }
               noValidate
-              className="w-full min-w-0 space-y-4 overflow-x-hidden"
+              className="
+                w-full
+                min-w-0
+                space-y-4
+                overflow-x-hidden
+              "
             >
+              {/* NAME */}
+
               {mode ===
                 "register" && (
                 <label className="block min-w-0">
-                  <span className="mb-2 block font-subtitle text-[11px] text-white/60">
+                  <span
+                    className="
+                      mb-2
+                      block
+                      font-subtitle
+                      text-[11px]
+                      text-white/60
+                    "
+                  >
                     Prénom et nom
                   </span>
 
                   <div className="relative min-w-0">
                     <UserRound
-                      size={17}
-                      className={`absolute left-4 top-1/2 -translate-y-1/2 transition ${
-                        errors.name
-                          ? "text-red-400"
-                          : "text-white/20"
-                      }`}
+                      size={
+                        17
+                      }
+                      className={`
+                        absolute
+                        left-4
+                        top-1/2
+                        -translate-y-1/2
+                        transition
+
+                        ${
+                          errors.name
+                            ? "text-red-400"
+                            : "text-white/20"
+                        }
+                      `}
                     />
 
                     <input
@@ -567,23 +1156,29 @@ export function AuthModal() {
                         name
                       }
                       onChange={(
-                        event
+                        event,
                       ) => {
                         setName(
                           event
                             .target
-                            .value
+                            .value,
                         );
 
                         clearError(
-                          "name"
+                          "name",
                         );
                       }}
-                      className={`min-h-[54px] w-full min-w-0 max-w-full rounded-[15px] border bg-white/[0.035] pl-12 pr-4 font-body text-sm text-white outline-none transition placeholder:text-white/20 ${
-                        errors.name
-                          ? "border-red-500/60 bg-red-500/[0.035] focus:border-red-400"
-                          : "border-white/[0.08] hover:border-white/15 focus:border-white/30 focus:bg-white/[0.05]"
-                      }`}
+                      className={`
+                        ${inputBaseClass}
+                        pl-12
+                        pr-4
+
+                        ${
+                          errors.name
+                            ? "border-red-500/60 bg-red-500/[0.035] focus:border-red-400"
+                            : "border-white/[0.08] hover:border-white/15 focus:border-white/30 focus:bg-white/[0.05]"
+                        }
+                      `}
                       placeholder="Jean Dupont"
                       autoComplete="name"
                       aria-invalid={
@@ -593,26 +1188,56 @@ export function AuthModal() {
                   </div>
 
                   {errors.name && (
-                    <p className="mt-1.5 break-words font-body text-[11px] text-red-400">
-                      {errors.name}
+                    <p
+                      className="
+                        mt-1.5
+                        break-words
+                        font-body
+                        text-[11px]
+                        text-red-400
+                      "
+                    >
+                      {
+                        errors.name
+                      }
                     </p>
                   )}
                 </label>
               )}
 
+              {/* EMAIL */}
+
               <label className="block min-w-0">
-                <span className="mb-2 block font-subtitle text-[11px] text-white/60">
+                <span
+                  className="
+                    mb-2
+                    block
+                    font-subtitle
+                    text-[11px]
+                    text-white/60
+                  "
+                >
                   E-mail
                 </span>
 
                 <div className="relative min-w-0">
                   <Mail
-                    size={17}
-                    className={`absolute left-4 top-1/2 -translate-y-1/2 transition ${
-                      errors.email
-                        ? "text-red-400"
-                        : "text-white/20"
-                    }`}
+                    size={
+                      17
+                    }
+                    className={`
+                      absolute
+                      left-4
+                      top-1/2
+                      -translate-y-1/2
+                      transition
+
+                      ${
+                        errors.email
+                          ? "text-red-400"
+                          : "text-white/20"
+                      }
+                    `}
                   />
 
                   <input
@@ -620,23 +1245,29 @@ export function AuthModal() {
                       email
                     }
                     onChange={(
-                      event
+                      event,
                     ) => {
                       setEmail(
                         event
                           .target
-                          .value
+                          .value,
                       );
 
                       clearError(
-                        "email"
+                        "email",
                       );
                     }}
-                    className={`min-h-[54px] w-full min-w-0 max-w-full rounded-[15px] border bg-white/[0.035] pl-12 pr-4 font-body text-sm text-white outline-none transition placeholder:text-white/20 ${
-                      errors.email
-                        ? "border-red-500/60 bg-red-500/[0.035] focus:border-red-400"
-                        : "border-white/[0.08] hover:border-white/15 focus:border-white/30 focus:bg-white/[0.05]"
-                    }`}
+                    className={`
+                      ${inputBaseClass}
+                      pl-12
+                      pr-4
+
+                      ${
+                        errors.email
+                          ? "border-red-500/60 bg-red-500/[0.035] focus:border-red-400"
+                          : "border-white/[0.08] hover:border-white/15 focus:border-white/30 focus:bg-white/[0.05]"
+                      }
+                    `}
                     type="email"
                     placeholder="you@email.com"
                     autoComplete="email"
@@ -647,15 +1278,42 @@ export function AuthModal() {
                 </div>
 
                 {errors.email && (
-                  <p className="mt-1.5 break-words font-body text-[11px] text-red-400">
-                    {errors.email}
+                  <p
+                    className="
+                      mt-1.5
+                      break-words
+                      font-body
+                      text-[11px]
+                      text-red-400
+                    "
+                  >
+                    {
+                      errors.email
+                    }
                   </p>
                 )}
               </label>
 
+              {/* PASSWORD */}
+
               <label className="block min-w-0">
-                <div className="mb-2 flex min-w-0 items-center justify-between gap-3">
-                  <span className="font-subtitle text-[11px] text-white/60">
+                <div
+                  className="
+                    mb-2
+                    flex
+                    min-w-0
+                    items-center
+                    justify-between
+                    gap-3
+                  "
+                >
+                  <span
+                    className="
+                      font-subtitle
+                      text-[11px]
+                      text-white/60
+                    "
+                  >
                     Mot de passe
                   </span>
 
@@ -670,7 +1328,18 @@ export function AuthModal() {
                         loading ||
                         !configured
                       }
-                      className="shrink-0 font-body text-[11px] text-white/30 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                      className="
+                        shrink-0
+                        font-body
+                        text-[11px]
+                        text-white/30
+                        transition
+                        hover:text-white
+                        focus:!outline-none
+                        focus-visible:!outline-none
+                        disabled:cursor-not-allowed
+                        disabled:opacity-40
+                      "
                     >
                       Mot de passe oublié ?
                     </button>
@@ -679,12 +1348,22 @@ export function AuthModal() {
 
                 <div className="relative min-w-0">
                   <LockKeyhole
-                    size={17}
-                    className={`absolute left-4 top-1/2 -translate-y-1/2 transition ${
-                      errors.password
-                        ? "text-red-400"
-                        : "text-white/20"
-                    }`}
+                    size={
+                      17
+                    }
+                    className={`
+                      absolute
+                      left-4
+                      top-1/2
+                      -translate-y-1/2
+                      transition
+
+                      ${
+                        errors.password
+                          ? "text-red-400"
+                          : "text-white/20"
+                      }
+                    `}
                   />
 
                   <input
@@ -692,23 +1371,28 @@ export function AuthModal() {
                       password
                     }
                     onChange={(
-                      event
+                      event,
                     ) => {
                       setPassword(
                         event
                           .target
-                          .value
+                          .value,
                       );
 
                       clearError(
-                        "password"
+                        "password",
                       );
                     }}
-                    className={`min-h-[54px] w-full min-w-0 max-w-full rounded-[15px] border bg-white/[0.035] px-12 font-body text-sm text-white outline-none transition placeholder:text-white/20 ${
-                      errors.password
-                        ? "border-red-500/60 bg-red-500/[0.035] focus:border-red-400"
-                        : "border-white/[0.08] hover:border-white/15 focus:border-white/30 focus:bg-white/[0.05]"
-                    }`}
+                    className={`
+                      ${inputBaseClass}
+                      px-12
+
+                      ${
+                        errors.password
+                          ? "border-red-500/60 bg-red-500/[0.035] focus:border-red-400"
+                          : "border-white/[0.08] hover:border-white/15 focus:border-white/30 focus:bg-white/[0.05]"
+                      }
+                    `}
                     type={
                       visiblePassword
                         ? "text"
@@ -731,12 +1415,22 @@ export function AuthModal() {
                     onClick={() =>
                       setVisiblePassword(
                         (
-                          current
+                          current,
                         ) =>
-                          !current
+                          !current,
                       )
                     }
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 transition hover:text-white/70"
+                    className="
+                      absolute
+                      right-4
+                      top-1/2
+                      -translate-y-1/2
+                      text-white/20
+                      transition
+                      hover:text-white/70
+                      focus:!outline-none
+                      focus-visible:!outline-none
+                    "
                     aria-label={
                       visiblePassword
                         ? "Masquer le mot de passe"
@@ -745,18 +1439,30 @@ export function AuthModal() {
                   >
                     {visiblePassword ? (
                       <EyeOff
-                        size={18}
+                        size={
+                          18
+                        }
                       />
                     ) : (
                       <Eye
-                        size={18}
+                        size={
+                          18
+                        }
                       />
                     )}
                   </button>
                 </div>
 
                 {errors.password && (
-                  <p className="mt-1.5 break-words font-body text-[11px] text-red-400">
+                  <p
+                    className="
+                      mt-1.5
+                      break-words
+                      font-body
+                      text-[11px]
+                      text-red-400
+                    "
+                  >
                     {
                       errors.password
                     }
@@ -764,32 +1470,71 @@ export function AuthModal() {
                 )}
               </label>
 
+              {/* FEEDBACK */}
+
               {feedback && (
                 <div
-                  className={`flex w-full min-w-0 max-w-full items-start gap-3 overflow-hidden rounded-[16px] border px-4 py-3.5 ${
-                    feedback.type ===
-                    "success"
-                      ? "border-green-500/20 bg-green-500/[0.07]"
-                      : "border-red-500/20 bg-red-500/[0.07]"
-                  }`}
+                  className={`
+                    flex
+                    w-full
+                    min-w-0
+                    max-w-full
+                    items-start
+                    gap-3
+                    overflow-hidden
+                    rounded-[16px]
+                    border
+                    px-4
+                    py-3.5
+
+                    ${
+                      feedback.type ===
+                      "success"
+                        ? "border-green-500/20 bg-green-500/[0.07]"
+                        : "border-red-500/20 bg-red-500/[0.07]"
+                    }
+                  `}
                 >
                   {feedback.type ===
                   "success" ? (
                     <CheckCircle2
-                      size={17}
-                      className="mt-0.5 shrink-0 text-green-400"
+                      size={
+                        17
+                      }
+                      className="
+                        mt-0.5
+                        shrink-0
+                        text-green-400
+                      "
                     />
                   ) : (
-                    <span className="mt-[6px] h-2 w-2 shrink-0 rounded-full bg-red-400" />
+                    <span
+                      className="
+                        mt-[6px]
+                        h-2
+                        w-2
+                        shrink-0
+                        rounded-full
+                        bg-red-400
+                      "
+                    />
                   )}
 
                   <p
-                    className={`min-w-0 break-words font-body text-xs leading-5 ${
-                      feedback.type ===
-                      "success"
-                        ? "text-green-100/75"
-                        : "text-red-100/75"
-                    }`}
+                    className={`
+                      min-w-0
+                      break-words
+                      font-body
+                      text-xs
+                      leading-5
+
+                      ${
+                        feedback.type ===
+                        "success"
+                          ? "text-green-100/75"
+                          : "text-red-100/75"
+                      }
+                    `}
                   >
                     {
                       feedback.message
@@ -798,18 +1543,47 @@ export function AuthModal() {
                 </div>
               )}
 
+              {/* SUBMIT */}
+
               <button
                 type="submit"
                 disabled={
                   loading ||
                   !configured
                 }
-                className="group mt-2 flex min-h-[54px] w-full min-w-0 max-w-full items-center justify-center gap-2 rounded-[15px] bg-white px-5 font-subtitle text-sm text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40"
+                className="
+                  group
+                  mt-2
+                  flex
+                  min-h-[54px]
+                  w-full
+                  min-w-0
+                  max-w-full
+                  items-center
+                  justify-center
+                  gap-2
+                  rounded-[15px]
+                  bg-white
+                  px-5
+                  font-subtitle
+                  text-sm
+                  text-black
+                  transition
+                  hover:bg-white/90
+
+                  focus:!outline-none
+                  focus-visible:!outline-none
+                  focus:!ring-0
+                  focus-visible:!ring-0
+
+                  disabled:cursor-not-allowed
+                  disabled:opacity-40
+                "
               >
                 <span>
                   {loading
                     ? t(
-                        "common.loading"
+                        "common.loading",
                       )
                     : mode ===
                         "login"
@@ -819,13 +1593,19 @@ export function AuthModal() {
 
                 {!loading && (
                   <ArrowRight
-                    size={17}
-                    className="shrink-0 transition-transform duration-300 group-hover:translate-x-1"
+                    size={
+                      17
+                    }
+                    className="
+                      shrink-0
+                      transition-transform
+                      duration-300
+                      group-hover:translate-x-1
+                    "
                   />
                 )}
               </button>
             </form>
-
           </div>
         </div>
       </section>

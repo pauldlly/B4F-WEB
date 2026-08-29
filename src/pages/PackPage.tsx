@@ -51,6 +51,10 @@ import type {
   SelectedExtra,
 } from "../types";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 type ChoiceGroup = {
   key: string;
   title: string;
@@ -58,6 +62,10 @@ type ChoiceGroup = {
   maxChoices: number;
   events: PublicPackEvent[];
 };
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function availabilityLabel(
   value: number | null,
@@ -81,13 +89,23 @@ function formatExtraMoney(
     {
       style: "currency",
       currency: "EUR",
+
       minimumFractionDigits:
-        hasDecimals ? 2 : 0,
+        hasDecimals
+          ? 2
+          : 0,
+
       maximumFractionDigits:
-        hasDecimals ? 2 : 0,
+        hasDecimals
+          ? 2
+          : 0,
     },
   ).format(value);
 }
+
+/* =========================================================
+   PAGE
+========================================================= */
 
 export function PackPage() {
   const {
@@ -98,76 +116,102 @@ export function PackPage() {
     useNavigate();
 
   const query =
-    usePackDetail(packId);
+    usePackDetail(
+      packId,
+    );
 
   const {
     addItem,
     items: cartItems,
     setOpen,
-  } = useCart();
+  } =
+    useCart();
 
   const {
     t,
     locale,
-  } = useI18n();
+  } =
+    useI18n();
 
   const [
     maleQuantity,
     setMaleQuantity,
-  ] = useState(0);
+  ] =
+    useState(0);
 
   const [
     femaleQuantity,
     setFemaleQuantity,
-  ] = useState(0);
+  ] =
+    useState(0);
 
   const [
     selectedChoiceIds,
     setSelectedChoiceIds,
-  ] = useState<string[]>([]);
+  ] =
+    useState<string[]>(
+      [],
+    );
 
   const [
     extraQuantities,
     setExtraQuantities,
-  ] = useState<Record<string, number>>({});
+  ] =
+    useState<
+      Record<
+        string,
+        number
+      >
+    >({});
 
   const [
     quickStart,
     setQuickStart,
-  ] = useState("");
+  ] =
+    useState("");
 
   const [
     quickEnd,
     setQuickEnd,
-  ] = useState("");
+  ] =
+    useState("");
 
   const [
     feedback,
     setFeedback,
-  ] = useState("");
+  ] =
+    useState("");
 
   const pack =
     query.data;
 
-  /*
-   * SOIRÉES OBLIGATOIRES
-   */
+  /* =====================================================
+     REQUIRED EVENTS
+  ===================================================== */
+
   const requiredEvents =
     useMemo(
       () =>
         pack?.events.filter(
-          (item) =>
+          (
+            item,
+          ) =>
             item.eventType ===
             "required",
         ) ?? [],
-      [pack],
+      [
+        pack,
+      ],
     );
 
-  /*
-   * GROUPES DE CHOIX
-   */
+  /* =====================================================
+     CHOICE GROUPS
+  ===================================================== */
+
   const choiceGroups =
-    useMemo<ChoiceGroup[]>(
+    useMemo<
+      ChoiceGroup[]
+    >(
       () => {
         const groups =
           new Map<
@@ -175,22 +219,33 @@ export function PackPage() {
             ChoiceGroup
           >();
 
-        (pack?.events ?? [])
+        (
+          pack?.events ??
+          []
+        )
           .filter(
-            (item) =>
+            (
+              item,
+            ) =>
               item.eventType ===
               "choice",
           )
           .forEach(
-            (item) => {
+            (
+              item,
+            ) => {
               const key =
                 item.choiceGroupKey ||
                 `choice-${item.id}`;
 
               const current =
-                groups.get(key);
+                groups.get(
+                  key,
+                );
 
-              if (current) {
+              if (
+                current
+              ) {
                 current.events.push(
                   item,
                 );
@@ -238,7 +293,9 @@ export function PackPage() {
         return Array.from(
           groups.values(),
         ).map(
-          (group) => ({
+          (
+            group,
+          ) => ({
             ...group,
 
             events: [
@@ -277,79 +334,116 @@ export function PackPage() {
       ],
     );
 
-  /*
-   * NETTOYAGE DES CHOIX
-   */
-  useEffect(() => {
-    if (!pack) {
-      return;
-    }
+  /* =====================================================
+     CLEAN CHOICES
+  ===================================================== */
 
-    const validIds =
-      new Set(
-        pack.events.map(
-          (item) =>
-            item.id,
-        ),
+  useEffect(
+    () => {
+      if (
+        !pack
+      ) {
+        return;
+      }
+
+      const validIds =
+        new Set(
+          pack.events.map(
+            (
+              item,
+            ) =>
+              item.id,
+          ),
+        );
+
+      setSelectedChoiceIds(
+        (
+          current,
+        ) =>
+          current.filter(
+            (
+              id,
+            ) =>
+              validIds.has(
+                id,
+              ),
+          ),
       );
+    },
+    [
+      pack,
+    ],
+  );
 
-    setSelectedChoiceIds(
-      (current) =>
-        current.filter(
-          (id) =>
-            validIds.has(id),
-        ),
-    );
-  }, [pack]);
+  /* =====================================================
+     AUTO SELECT
+  ===================================================== */
 
-  /*
-   * AUTO-SÉLECTION
-   * SI UN SEUL CHOIX DISPONIBLE
-   */
-  useEffect(() => {
-    setSelectedChoiceIds(
-      (current) => {
-        const next =
-          new Set(current);
+  useEffect(
+    () => {
+      setSelectedChoiceIds(
+        (
+          current,
+        ) => {
+          const next =
+            new Set(
+              current,
+            );
 
-        choiceGroups.forEach(
-          (group) => {
-            const selected =
-              group.events.filter(
-                (item) =>
-                  next.has(
-                    item.id,
-                  ),
-              );
+          choiceGroups.forEach(
+            (
+              group,
+            ) => {
+              const selected =
+                group.events.filter(
+                  (
+                    item,
+                  ) =>
+                    next.has(
+                      item.id,
+                    ),
+                );
 
-            const available =
-              group.events.filter(
-                (item) =>
-                  !item.event.soldout,
-              );
+              const available =
+                group.events.filter(
+                  (
+                    item,
+                  ) =>
+                    !item.event.soldout,
+                );
 
-            if (
-              selected.length === 0 &&
-              group.minChoices > 0 &&
-              available.length === 1
-            ) {
-              next.add(
-                available[0].id,
-              );
-            }
-          },
-        );
+              if (
+                selected.length ===
+                  0 &&
+                group.minChoices >
+                  0 &&
+                available.length ===
+                  1
+              ) {
+                next.add(
+                  available[
+                    0
+                  ].id,
+                );
+              }
+            },
+          );
 
-        return Array.from(
-          next,
-        );
-      },
-    );
-  }, [choiceGroups]);
+          return Array.from(
+            next,
+          );
+        },
+      );
+    },
+    [
+      choiceGroups,
+    ],
+  );
 
-  /*
-   * SOIRÉES SÉLECTIONNÉES
-   */
+  /* =====================================================
+     SELECTED EVENTS
+  ===================================================== */
+
   const selectedEvents =
     useMemo(
       () => [
@@ -357,13 +451,16 @@ export function PackPage() {
 
         ...(
           pack?.events.filter(
-            (item) =>
+            (
+              item,
+            ) =>
               item.eventType ===
                 "choice" &&
               selectedChoiceIds.includes(
                 item.id,
               ),
-          ) ?? []
+          ) ??
+          []
         ),
       ],
       [
@@ -373,17 +470,22 @@ export function PackPage() {
       ],
     );
 
-  /*
-   * VALIDATION DES GROUPES
-   */
+  /* =====================================================
+     VALIDATION
+  ===================================================== */
+
   const choiceValidation =
     useMemo(
       () =>
         choiceGroups.map(
-          (group) => {
+          (
+            group,
+          ) => {
             const count =
               group.events.filter(
-                (item) =>
+                (
+                  item,
+                ) =>
                   selectedChoiceIds.includes(
                     item.id,
                   ),
@@ -410,89 +512,115 @@ export function PackPage() {
 
   const choicesValid =
     choiceValidation.every(
-      (group) =>
+      (
+        group,
+      ) =>
         group.valid,
     );
 
-  /*
-   * STOCK HOMME
-   */
+  /* =====================================================
+     STOCK MAN
+  ===================================================== */
+
   const maleMaximum =
-    useMemo(() => {
-      if (!pack) {
-        return 0;
-      }
+    useMemo(
+      () => {
+        if (
+          !pack
+        ) {
+          return 0;
+        }
 
-      return minimumKnown([
-        packGenderRemaining(
-          pack,
-          "man",
-        ),
+        return minimumKnown([
+          packGenderRemaining(
+            pack,
+            "man",
+          ),
 
-        ...selectedEvents.map(
-          (item) =>
-            eventGenderRemaining(
-              item.event,
-              "man",
-            ),
-        ),
-      ]);
-    }, [
-      pack,
-      selectedEvents,
-    ]);
+          ...selectedEvents.map(
+            (
+              item,
+            ) =>
+              eventGenderRemaining(
+                item.event,
+                "man",
+              ),
+          ),
+        ]);
+      },
+      [
+        pack,
+        selectedEvents,
+      ],
+    );
 
-  /*
-   * STOCK FEMME
-   */
+  /* =====================================================
+     STOCK WOMAN
+  ===================================================== */
+
   const femaleMaximum =
-    useMemo(() => {
-      if (!pack) {
-        return 0;
-      }
+    useMemo(
+      () => {
+        if (
+          !pack
+        ) {
+          return 0;
+        }
 
-      return minimumKnown([
-        packGenderRemaining(
-          pack,
-          "woman",
-        ),
+        return minimumKnown([
+          packGenderRemaining(
+            pack,
+            "woman",
+          ),
 
-        ...selectedEvents.map(
-          (item) =>
-            eventGenderRemaining(
-              item.event,
-              "woman",
-            ),
-        ),
-      ]);
-    }, [
-      pack,
-      selectedEvents,
-    ]);
-
-  /*
-   * RESPECT DES STOCKS
-   */
-  useEffect(() => {
-    setMaleQuantity(
-      (current) =>
-        clampToMaximum(
-          current,
-          maleMaximum,
-        ),
+          ...selectedEvents.map(
+            (
+              item,
+            ) =>
+              eventGenderRemaining(
+                item.event,
+                "woman",
+              ),
+          ),
+        ]);
+      },
+      [
+        pack,
+        selectedEvents,
+      ],
     );
 
-    setFemaleQuantity(
-      (current) =>
-        clampToMaximum(
+  /* =====================================================
+     CLAMP STOCK
+  ===================================================== */
+
+  useEffect(
+    () => {
+      setMaleQuantity(
+        (
           current,
-          femaleMaximum,
-        ),
-    );
-  }, [
-    femaleMaximum,
-    maleMaximum,
-  ]);
+        ) =>
+          clampToMaximum(
+            current,
+            maleMaximum,
+          ),
+      );
+
+      setFemaleQuantity(
+        (
+          current,
+        ) =>
+          clampToMaximum(
+            current,
+            femaleMaximum,
+          ),
+      );
+    },
+    [
+      femaleMaximum,
+      maleMaximum,
+    ],
+  );
 
   const totalPackTickets =
     maleQuantity +
@@ -500,20 +628,27 @@ export function PackPage() {
 
   const requiredUnavailable =
     requiredEvents.some(
-      (item) =>
+      (
+        item,
+      ) =>
         item.event.soldout,
     );
 
-  /*
-   * OPTIONS + TABLES
-   */
+  /* =====================================================
+     AVAILABLE EXTRAS
+  ===================================================== */
+
   const availableExtras =
     useMemo(
       () =>
         selectedEvents.flatMap(
-          (packEvent) => [
+          (
+            packEvent,
+          ) => [
             ...packEvent.options.map(
-              (option) => ({
+              (
+                option,
+              ) => ({
                 key:
                   `pack-option:${packEvent.id}:${option.id}`,
 
@@ -554,7 +689,9 @@ export function PackPage() {
             ),
 
             ...packEvent.tables.map(
-              (table) => ({
+              (
+                table,
+              ) => ({
                 key:
                   `pack-table:${packEvent.id}:${table.id}`,
 
@@ -604,7 +741,9 @@ export function PackPage() {
     useMemo(
       () =>
         availableExtras.filter(
-          (extra) =>
+          (
+            extra,
+          ) =>
             extra.kind ===
             "option",
         ),
@@ -617,7 +756,9 @@ export function PackPage() {
     useMemo(
       () =>
         availableExtras.filter(
-          (extra) =>
+          (
+            extra,
+          ) =>
             extra.kind ===
             "table",
         ),
@@ -626,84 +767,106 @@ export function PackPage() {
       ],
     );
 
-  /*
-   * NETTOYAGE DES EXTRAS
-   */
-  useEffect(() => {
-    const validKeys =
-      new Set(
-        availableExtras.map(
-          (extra) =>
-            extra.key,
-        ),
-      );
+  /* =====================================================
+     CLEAN EXTRAS
+  ===================================================== */
 
-    setExtraQuantities(
-      (current) =>
-        Object.fromEntries(
-          Object.entries(
-            current,
-          )
-            .filter(
-              ([key]) =>
-                validKeys.has(
-                  key,
-                ),
+  useEffect(
+    () => {
+      const validKeys =
+        new Set(
+          availableExtras.map(
+            (
+              extra,
+            ) =>
+              extra.key,
+          ),
+        );
+
+      setExtraQuantities(
+        (
+          current,
+        ) =>
+          Object.fromEntries(
+            Object.entries(
+              current,
             )
-            .map(
-              ([
-                key,
-                value,
-              ]) => {
-                const extra =
-                  availableExtras.find(
-                    (item) =>
-                      item.key ===
-                      key,
-                  );
+              .filter(
+                (
+                  [
+                    key,
+                  ],
+                ) =>
+                  validKeys.has(
+                    key,
+                  ),
+              )
+              .map(
+                (
+                  [
+                    key,
+                    value,
+                  ],
+                ) => {
+                  const extra =
+                    availableExtras.find(
+                      (
+                        item,
+                      ) =>
+                        item.key ===
+                        key,
+                    );
 
-                if (
-                  extra?.kind ===
-                  "table"
-                ) {
+                  if (
+                    extra?.kind ===
+                    "table"
+                  ) {
+                    return [
+                      key,
+
+                      Math.min(
+                        Math.max(
+                          Number(
+                            value,
+                          ) ||
+                            0,
+                          0,
+                        ),
+                        1,
+                      ),
+                    ];
+                  }
+
                   return [
                     key,
 
                     Math.min(
                       Math.max(
-                        Number(value) ||
+                        Number(
+                          value,
+                        ) ||
                           0,
                         0,
                       ),
-                      1,
+
+                      totalPackTickets,
                     ),
                   ];
-                }
+                },
+              ),
+          ),
+      );
+    },
+    [
+      availableExtras,
+      totalPackTickets,
+    ],
+  );
 
-                return [
-                  key,
+  /* =====================================================
+     SELECTED EXTRAS
+  ===================================================== */
 
-                  Math.min(
-                    Math.max(
-                      Number(value) ||
-                        0,
-                      0,
-                    ),
-                    totalPackTickets,
-                  ),
-                ];
-              },
-            ),
-        ),
-    );
-  }, [
-    availableExtras,
-    totalPackTickets,
-  ]);
-
-  /*
-   * EXTRAS SÉLECTIONNÉS
-   */
   const selectedExtras =
     useMemo<
       SelectedExtra[]
@@ -711,17 +874,22 @@ export function PackPage() {
       () =>
         availableExtras
           .map(
-            (extra) => ({
+            (
+              extra,
+            ) => ({
               ...extra,
 
               quantity:
                 extraQuantities[
                   extra.key
-                ] ?? 0,
+                ] ??
+                0,
             }),
           )
           .filter(
-            (extra) =>
+            (
+              extra,
+            ) =>
               extra.quantity >
               0,
           ),
@@ -731,9 +899,10 @@ export function PackPage() {
       ],
     );
 
-  /*
-   * LOADING
-   */
+  /* =====================================================
+     LOADING
+  ===================================================== */
+
   if (
     query.isPending
   ) {
@@ -742,15 +911,31 @@ export function PackPage() {
     );
   }
 
-  /*
-   * NOT FOUND
-   */
+  /* =====================================================
+     NOT FOUND
+  ===================================================== */
+
   if (
     query.error ||
     !pack
   ) {
     return (
-      <div className="page-shell pb-24 pt-36 text-center">
+      <div
+        className="
+          page-shell
+
+          pb-16
+          pt-[72px]
+
+          text-center
+
+          sm:pb-20
+          sm:pt-24
+
+          lg:pb-24
+          lg:pt-32
+        "
+      >
         <Seo
           title={t(
             "pack.notFoundTitle",
@@ -763,16 +948,32 @@ export function PackPage() {
 
         <Layers3
           size={48}
-          className="mx-auto text-white/20"
+          className="
+            mx-auto
+            text-white/20
+          "
         />
 
-        <h1 className="mt-5 font-title text-3xl uppercase">
+        <h1
+          className="
+            mt-4
+            font-title
+            text-3xl
+            uppercase
+          "
+        >
           {t(
             "pack.notFoundTitle",
           )}
         </h1>
 
-        <p className="mt-3 font-body text-white/40">
+        <p
+          className="
+            mt-2
+            font-body
+            text-white/40
+          "
+        >
           {t(
             "pack.notFoundText",
           )}
@@ -780,7 +981,10 @@ export function PackPage() {
 
         <Link
           to="/packs"
-          className="secondary-button mt-6"
+          className="
+            secondary-button
+            mt-5
+          "
         >
           {t(
             "common.back",
@@ -790,9 +994,10 @@ export function PackPage() {
     );
   }
 
-  /*
-   * TOTAL
-   */
+  /* =====================================================
+     TOTAL
+  ===================================================== */
+
   const extrasTotal =
     selectedExtras.reduce(
       (
@@ -812,166 +1017,187 @@ export function PackPage() {
       pack.womenPrice +
     extrasTotal;
 
-  /*
-   * DISPONIBILITÉ D'UNE SOIRÉE
-   */
-  const eventCanHandleSelection = (
-    item:
-      PublicPackEvent,
-  ) => {
-    if (
-      item.event.soldout
-    ) {
-      return false;
-    }
+  /* =====================================================
+     EVENT AVAILABILITY
+  ===================================================== */
 
-    const maleRemaining =
-      eventGenderRemaining(
-        item.event,
-        "man",
+  const eventCanHandleSelection =
+    (
+      item:
+        PublicPackEvent,
+    ) => {
+      if (
+        item.event.soldout
+      ) {
+        return false;
+      }
+
+      const maleRemaining =
+        eventGenderRemaining(
+          item.event,
+          "man",
+        );
+
+      const femaleRemaining =
+        eventGenderRemaining(
+          item.event,
+          "woman",
+        );
+
+      return (
+        (
+          maleRemaining ===
+            null ||
+          maleQuantity <=
+            maleRemaining
+        ) &&
+        (
+          femaleRemaining ===
+            null ||
+          femaleQuantity <=
+            femaleRemaining
+        )
       );
+    };
 
-    const femaleRemaining =
-      eventGenderRemaining(
-        item.event,
-        "woman",
-      );
+  /* =====================================================
+     TOGGLE CHOICE
+  ===================================================== */
 
-    return (
-      (
-        maleRemaining ===
-          null ||
-        maleQuantity <=
-          maleRemaining
-      ) &&
-      (
-        femaleRemaining ===
-          null ||
-        femaleQuantity <=
-          femaleRemaining
-      )
-    );
-  };
+  const toggleChoice =
+    (
+      group:
+        ChoiceGroup,
 
-  /*
-   * CHOIX D'UNE SOIRÉE
-   */
-  const toggleChoice = (
-    group:
-      ChoiceGroup,
-
-    packEventId:
-      string,
-  ) => {
-    const target =
-      group.events.find(
-        (item) =>
-          item.id ===
-          packEventId,
-      );
-
-    if (
-      !target ||
-      !eventCanHandleSelection(
-        target,
-      )
-    ) {
-      setFeedback(
-        t(
-          "pack.choiceUnavailable",
-        ),
-      );
-
-      return;
-    }
-
-    setFeedback("");
-
-    setSelectedChoiceIds(
-      (current) => {
-        const selectedInGroup =
-          group.events
-            .filter(
-              (item) =>
-                current.includes(
-                  item.id,
-                ),
-            )
-            .map(
-              (item) =>
-                item.id,
-            );
-
-        const alreadySelected =
-          current.includes(
+      packEventId:
+        string,
+    ) => {
+      const target =
+        group.events.find(
+          (
+            item,
+          ) =>
+            item.id ===
             packEventId,
-          );
+        );
 
-        if (
-          alreadySelected
-        ) {
-          return current.filter(
-            (id) =>
-              id !==
-              packEventId,
-          );
-        }
+      if (
+        !target ||
+        !eventCanHandleSelection(
+          target,
+        )
+      ) {
+        setFeedback(
+          t(
+            "pack.choiceUnavailable",
+          ),
+        );
 
-        if (
-          selectedInGroup.length >=
-          group.maxChoices
-        ) {
-          if (
-            group.maxChoices ===
-            1
-          ) {
-            const groupIds =
-              new Set(
-                group.events.map(
-                  (item) =>
+        return;
+      }
+
+      setFeedback(
+        "",
+      );
+
+      setSelectedChoiceIds(
+        (
+          current,
+        ) => {
+          const selectedInGroup =
+            group.events
+              .filter(
+                (
+                  item,
+                ) =>
+                  current.includes(
                     item.id,
-                ),
+                  ),
+              )
+              .map(
+                (
+                  item,
+                ) =>
+                  item.id,
               );
 
-            return [
-              ...current.filter(
-                (id) =>
-                  !groupIds.has(
-                    id,
-                  ),
-              ),
-
+          const alreadySelected =
+            current.includes(
               packEventId,
-            ];
+            );
+
+          if (
+            alreadySelected
+          ) {
+            return current.filter(
+              (
+                id,
+              ) =>
+                id !==
+                packEventId,
+            );
           }
 
-          setFeedback(
-            t(
-              "pack.minMax",
-              {
-                min:
-                  group.minChoices,
+          if (
+            selectedInGroup.length >=
+            group.maxChoices
+          ) {
+            if (
+              group.maxChoices ===
+              1
+            ) {
+              const groupIds =
+                new Set(
+                  group.events.map(
+                    (
+                      item,
+                    ) =>
+                      item.id,
+                  ),
+                );
 
-                max:
-                  group.maxChoices,
-              },
-            ),
-          );
+              return [
+                ...current.filter(
+                  (
+                    id,
+                  ) =>
+                    !groupIds.has(
+                      id,
+                    ),
+                ),
 
-          return current;
-        }
+                packEventId,
+              ];
+            }
 
-        return [
-          ...current,
-          packEventId,
-        ];
-      },
-    );
-  };
+            setFeedback(
+              t(
+                "pack.minMax",
+                {
+                  min:
+                    group.minChoices,
 
-  /*
-   * SÉLECTION RAPIDE
-   */
+                  max:
+                    group.maxChoices,
+                },
+              ),
+            );
+
+            return current;
+          }
+
+          return [
+            ...current,
+            packEventId,
+          ];
+        },
+      );
+    };
+
+  /* =====================================================
+     QUICK SELECTION
+  ===================================================== */
+
   const applyQuickSelection =
     () => {
       if (
@@ -1011,7 +1237,8 @@ export function PackPage() {
       }
 
       const nextIds:
-        string[] = [];
+        string[] =
+        [];
 
       for (
         const group
@@ -1019,7 +1246,9 @@ export function PackPage() {
       ) {
         const candidates =
           group.events.filter(
-            (item) => {
+            (
+              item,
+            ) => {
               const date =
                 parseEventDate(
                   item.event.eventDate,
@@ -1059,7 +1288,9 @@ export function PackPage() {
               group.minChoices,
             )
             .map(
-              (item) =>
+              (
+                item,
+              ) =>
                 item.id,
             ),
         );
@@ -1068,18 +1299,26 @@ export function PackPage() {
       const allChoiceIds =
         new Set(
           choiceGroups.flatMap(
-            (group) =>
+            (
+              group,
+            ) =>
               group.events.map(
-                (item) =>
+                (
+                  item,
+                ) =>
                   item.id,
               ),
           ),
         );
 
       setSelectedChoiceIds(
-        (current) => [
+        (
+          current,
+        ) => [
           ...current.filter(
-            (id) =>
+            (
+              id,
+            ) =>
               !allChoiceIds.has(
                 id,
               ),
@@ -1089,286 +1328,327 @@ export function PackPage() {
         ],
       );
 
-      setFeedback("");
+      setFeedback(
+        "",
+      );
     };
 
-  /*
-   * OPTIONS / TABLES
-   */
-  const updateExtra = (
-    key: string,
-    value: number,
-  ) => {
-    const target =
-      availableExtras.find(
-        (extra) =>
-          extra.key === key,
-      );
+  /* =====================================================
+     UPDATE EXTRA
+  ===================================================== */
 
-    if (!target) {
-      return;
-    }
-
-    if (
-      target.kind ===
-        "table" &&
-      value > 0
-    ) {
-      setExtraQuantities(
-        (current) => {
-          const next = {
-            ...current,
-          };
-
-          availableExtras
-            .filter(
-              (extra) =>
-                extra.kind ===
-                  "table" &&
-                extra.packEventId ===
-                  target.packEventId,
-            )
-            .forEach(
-              (extra) => {
-                next[
-                  extra.key
-                ] =
-                  extra.key ===
-                  key
-                    ? 1
-                    : 0;
-              },
-            );
-
-          return next;
-        },
-      );
-
-      return;
-    }
-
-    setExtraQuantities(
-      (current) => ({
-        ...current,
-
-        [key]:
-          target.kind ===
-          "table"
-            ? Math.min(
-                Math.max(
-                  Number(
-                    value,
-                  ) || 0,
-                  0,
-                ),
-                1,
-              )
-            : Math.min(
-                Math.max(
-                  Number(
-                    value,
-                  ) || 0,
-                  0,
-                ),
-                totalPackTickets,
-              ),
-      }),
-    );
-  };
-
-  /*
-   * AJOUT PANIER
-   */
-  const addPack = () => {
-    if (
-      pack.soldout
-    ) {
-      setFeedback(
-        t(
-          "pack.full",
-        ),
-      );
-
-      return;
-    }
-
-    if (
-      requiredUnavailable
-    ) {
-      setFeedback(
-        t(
-          "pack.requiredUnavailable",
-        ),
-      );
-
-      return;
-    }
-
-    if (
-      cartItems.some(
-        (item) =>
-          item.kind ===
-          "event",
-      )
-    ) {
-      setFeedback(
-        t(
-          "pack.noMixedCart",
-        ),
-      );
-
-      return;
-    }
-
-    if (
-      cartItems.some(
-        (item) =>
-          item.kind ===
-            "pack" &&
-          item.packId !==
-            pack.id,
-      )
-    ) {
-      setFeedback(
-        t(
-          "pack.onePackRule",
-        ),
-      );
-
-      return;
-    }
-
-    if (
-      totalPackTickets <=
-      0
-    ) {
-      setFeedback(
-        t(
-          "pack.selectionRequired",
-        ),
-      );
-
-      return;
-    }
-
-    if (
-      !choicesValid
-    ) {
-      setFeedback(
-        t(
-          "pack.completeChoices",
-        ),
-      );
-
-      return;
-    }
-
-    if (
-      !selectedEvents.every(
-        eventCanHandleSelection,
-      )
-    ) {
-      setFeedback(
-        t(
-          "pack.unavailable",
-        ),
-      );
-
-      return;
-    }
-
-    const selectionSignature =
-      selectedEvents
-        .map(
-          (item) =>
-            item.id,
-        )
-        .sort()
-        .join(",");
-
-    const extrasSignature =
-      selectedExtras
-        .map(
-          (extra) =>
-            `${extra.key}:${extra.quantity}`,
-        )
-        .sort()
-        .join(",");
-
-    addItem({
-      kind:
-        "pack",
-
+  const updateExtra =
+    (
       key:
-        `pack:${pack.id}:${selectionSignature}:${extrasSignature}`,
+        string,
 
-      packId:
-        pack.id,
+      value:
+        number,
+    ) => {
+      const target =
+        availableExtras.find(
+          (
+            extra,
+          ) =>
+            extra.key ===
+            key,
+        );
 
-      packName:
-        pack.name,
+      if (
+        !target
+      ) {
+        return;
+      }
 
-      imageUrl:
-        pack.imageUrl,
+      if (
+        target.kind ===
+          "table" &&
+        value >
+          0
+      ) {
+        setExtraQuantities(
+          (
+            current,
+          ) => {
+            const next = {
+              ...current,
+            };
 
-      maleQuantity,
+            availableExtras
+              .filter(
+                (
+                  extra,
+                ) =>
+                  extra.kind ===
+                    "table" &&
+                  extra.packEventId ===
+                    target.packEventId,
+              )
+              .forEach(
+                (
+                  extra,
+                ) => {
+                  next[
+                    extra.key
+                  ] =
+                    extra.key ===
+                    key
+                      ? 1
+                      : 0;
+                },
+              );
 
-      femaleQuantity,
+            return next;
+          },
+        );
 
-      maleUnitPrice:
-        pack.menPrice,
+        return;
+      }
 
-      femaleUnitPrice:
-        pack.womenPrice,
+      setExtraQuantities(
+        (
+          current,
+        ) => ({
+          ...current,
 
-      maleMaximumAvailable:
-        maleMaximum,
+          [key]:
+            target.kind ===
+            "table"
+              ? Math.min(
+                  Math.max(
+                    Number(
+                      value,
+                    ) ||
+                      0,
+                    0,
+                  ),
+                  1,
+                )
+              : Math.min(
+                  Math.max(
+                    Number(
+                      value,
+                    ) ||
+                      0,
+                    0,
+                  ),
 
-      femaleMaximumAvailable:
-        femaleMaximum,
+                  totalPackTickets,
+                ),
+        }),
+      );
+    };
 
-      selectedEvents:
-        selectedEvents.map(
-          (item) => ({
-            packEventId:
+  /* =====================================================
+     ADD PACK
+  ===================================================== */
+
+  const addPack =
+    () => {
+      if (
+        pack.soldout
+      ) {
+        setFeedback(
+          t(
+            "pack.full",
+          ),
+        );
+
+        return;
+      }
+
+      if (
+        requiredUnavailable
+      ) {
+        setFeedback(
+          t(
+            "pack.requiredUnavailable",
+          ),
+        );
+
+        return;
+      }
+
+      if (
+        cartItems.some(
+          (
+            item,
+          ) =>
+            item.kind ===
+            "event",
+        )
+      ) {
+        setFeedback(
+          t(
+            "pack.noMixedCart",
+          ),
+        );
+
+        return;
+      }
+
+      if (
+        cartItems.some(
+          (
+            item,
+          ) =>
+            item.kind ===
+              "pack" &&
+            item.packId !==
+              pack.id,
+        )
+      ) {
+        setFeedback(
+          t(
+            "pack.onePackRule",
+          ),
+        );
+
+        return;
+      }
+
+      if (
+        totalPackTickets <=
+        0
+      ) {
+        setFeedback(
+          t(
+            "pack.selectionRequired",
+          ),
+        );
+
+        return;
+      }
+
+      if (
+        !choicesValid
+      ) {
+        setFeedback(
+          t(
+            "pack.completeChoices",
+          ),
+        );
+
+        return;
+      }
+
+      if (
+        !selectedEvents.every(
+          eventCanHandleSelection,
+        )
+      ) {
+        setFeedback(
+          t(
+            "pack.unavailable",
+          ),
+        );
+
+        return;
+      }
+
+      const selectionSignature =
+        selectedEvents
+          .map(
+            (
+              item,
+            ) =>
               item.id,
+          )
+          .sort()
+          .join(
+            ",",
+          );
 
-            eventId:
-              item.eventId,
+      const extrasSignature =
+        selectedExtras
+          .map(
+            (
+              extra,
+            ) =>
+              `${extra.key}:${extra.quantity}`,
+          )
+          .sort()
+          .join(
+            ",",
+          );
 
-            name:
-              item.event.name,
+      addItem({
+        kind:
+          "pack",
 
-            eventDate:
-              item.event.eventDate,
+        key:
+          `pack:${pack.id}:${selectionSignature}:${extrasSignature}`,
 
-            startTime:
-              item.event.startTime,
+        packId:
+          pack.id,
 
-            location:
-              item.event.location,
-          }),
-        ),
+        packName:
+          pack.name,
 
-      extras:
-        selectedExtras,
-    });
+        imageUrl:
+          pack.imageUrl,
 
-    setFeedback("");
+        maleQuantity,
 
-    /*
-     * APRÈS AJOUT :
-     * 1. RETOUR SUR /PACKS
-     * 2. OUVERTURE DU CARTDRAWER
-     */
-    navigate(
-      "/packs",
-    );
+        femaleQuantity,
 
-    setOpen(
-      true,
-    );
-  };
+        maleUnitPrice:
+          pack.menPrice,
+
+        femaleUnitPrice:
+          pack.womenPrice,
+
+        maleMaximumAvailable:
+          maleMaximum,
+
+        femaleMaximumAvailable:
+          femaleMaximum,
+
+        selectedEvents:
+          selectedEvents.map(
+            (
+              item,
+            ) => ({
+              packEventId:
+                item.id,
+
+              eventId:
+                item.eventId,
+
+              name:
+                item.event.name,
+
+              eventDate:
+                item.event.eventDate,
+
+              startTime:
+                item.event.startTime,
+
+              location:
+                item.event.location,
+            }),
+          ),
+
+        extras:
+          selectedExtras,
+      });
+
+      setFeedback(
+        "",
+      );
+
+      navigate(
+        "/packs",
+      );
+
+      setOpen(
+        true,
+      );
+    };
+
+  /* =====================================================
+     FINAL VALUES
+  ===================================================== */
 
   const purchaseUnavailable =
     pack.soldout ||
@@ -1378,8 +1658,21 @@ export function PackPage() {
     pack.colorHex ||
     "#ff69b4";
 
+  /* =====================================================
+     RENDER
+  ===================================================== */
+
   return (
-    <div className="min-h-screen bg-[#090909]">
+    <div
+      className="
+        min-h-screen
+        bg-[#090909]
+      "
+    >
+      {/* =================================================
+          SEO
+      ================================================= */}
+
       <Seo
         title={
           pack.name
@@ -1439,30 +1732,62 @@ export function PackPage() {
         }}
       />
 
-      <div className="page-shell pb-16 pt-28 sm:pb-20 sm:pt-32">
+      {/* =================================================
+          MAIN
+      ================================================= */}
 
-        {/* BACK */}
+      <div
+        className="
+          page-shell
+
+          pb-12
+          pt-[72px]
+
+          sm:pb-16
+          sm:pt-24
+
+          lg:pb-20
+          lg:pt-28
+        "
+      >
+        {/* =================================================
+            BACK
+        ================================================= */}
+
         <Link
           to="/packs"
           className="
             group
             inline-flex
-            h-10
+
+            h-9
+
             items-center
-            gap-2.5
+            gap-2
+
             rounded-full
             border
             border-white/[0.09]
             bg-[#141414]
-            pl-2
-            pr-4
+
+            pl-1.5
+            pr-3.5
+
             font-subtitle
-            text-[10px]
+            text-[9px]
             uppercase
             tracking-[0.12em]
             text-white/45
+
             transition-all
             duration-300
+
+            sm:h-10
+            sm:gap-2.5
+            sm:pl-2
+            sm:pr-4
+            sm:text-[10px]
+
             hover:border-white/[0.16]
             hover:bg-[#181818]
             hover:text-white
@@ -1471,13 +1796,20 @@ export function PackPage() {
           <span
             className="
               grid
-              h-7
-              w-7
+
+              h-6
+              w-6
+
               place-items-center
               rounded-full
               bg-white/[0.06]
+
               transition-transform
               duration-300
+
+              sm:h-7
+              sm:w-7
+
               group-hover:-translate-x-0.5
             "
           >
@@ -1489,31 +1821,52 @@ export function PackPage() {
           Retour aux packs
         </Link>
 
+        {/* =================================================
+            GRID
+        ================================================= */}
+
         <div
           className="
-            mt-6
+            mt-3
             grid
-            gap-8
+            gap-5
+
+            sm:mt-5
+            sm:gap-7
+
+            lg:mt-6
             lg:grid-cols-[minmax(0,1fr)_460px]
             lg:items-start
+            lg:gap-8
           "
         >
+          {/* =================================================
+              LEFT
+          ================================================= */}
 
-          {/* LEFT */}
           <section className="min-w-0">
+            {/* ===============================================
+                IMAGE
+            =============================================== */}
 
-            {/* IMAGE */}
             <div
               className="
                 relative
-                h-[360px]
+
+                h-[320px]
+
                 overflow-hidden
-                rounded-[28px]
+                rounded-[22px]
+
                 border
                 border-white/[0.08]
                 bg-[#111]
-                sm:h-[520px]
+
+                sm:h-[480px]
+                sm:rounded-[26px]
+
                 lg:h-[550px]
+                lg:rounded-[28px]
               "
             >
               {pack.imageUrl ? (
@@ -1538,14 +1891,25 @@ export function PackPage() {
                   fetchPriority="high"
                 />
               ) : (
-                <div className="grid h-full place-items-center">
+                <div
+                  className="
+                    grid
+                    h-full
+                    place-items-center
+                  "
+                >
                   <Layers3
-                    size={112}
+                    size={96}
                     style={{
                       color:
                         packColor,
                     }}
-                    className="opacity-30"
+                    className="
+                      opacity-30
+
+                      sm:h-[112px]
+                      sm:w-[112px]
+                    "
                   />
                 </div>
               )}
@@ -1560,21 +1924,40 @@ export function PackPage() {
               />
 
               {pack.soldout && (
-                <div className="sold-out-shade absolute inset-0" />
+                <div
+                  className="
+                    sold-out-shade
+                    absolute
+                    inset-0
+                  "
+                />
               )}
             </div>
 
-            {/* TITLE */}
-            <div className="mt-4 sm:mt-5">
+            {/* ===============================================
+                TITLE
+            =============================================== */}
+
+            <div
+              className="
+                mt-3
+
+                sm:mt-5
+              "
+            >
               <h1
                 className="
                   max-w-4xl
                   font-title
-                  text-4xl
+
+                  text-3xl
+
                   uppercase
                   leading-[0.88]
-                  tracking-[-0.045em]
-                  sm:text-6xl
+
+                  sm:text-5xl
+
+                  lg:text-6xl
                 "
                 style={{
                   color:
@@ -1587,16 +1970,25 @@ export function PackPage() {
               </h1>
             </div>
 
-            {/* DESCRIPTION */}
+            {/* ===============================================
+                DESCRIPTION
+            =============================================== */}
+
             {pack.description && (
               <div
                 className="
-                  mt-7
-                  rounded-[26px]
+                  mt-5
+
+                  rounded-[22px]
+
                   border
                   border-white/[0.07]
                   bg-[#111]
-                  p-5
+
+                  p-4
+
+                  sm:mt-7
+                  sm:rounded-[26px]
                   sm:p-7
                 "
               >
@@ -1605,9 +1997,12 @@ export function PackPage() {
                     whitespace-pre-wrap
                     break-words
                     font-body
-                    text-sm
-                    leading-7
+
+                    text-[13px]
+                    leading-6
+
                     text-white/55
+
                     sm:text-[15px]
                     sm:leading-8
                   "
@@ -1619,26 +2014,50 @@ export function PackPage() {
               </div>
             )}
 
-            {/* UNAVAILABLE */}
+            {/* ===============================================
+                UNAVAILABLE
+            =============================================== */}
+
             {purchaseUnavailable && (
               <div
                 className="
-                  mt-7
+                  mt-5
+
                   flex
-                  gap-4
-                  rounded-[24px]
+                  gap-3
+
+                  rounded-[20px]
+
                   border
                   border-red-500/[0.18]
                   bg-red-500/[0.055]
-                  p-5
+
+                  p-4
+
+                  sm:mt-7
+                  sm:gap-4
+                  sm:rounded-[24px]
+                  sm:p-5
                 "
               >
                 <CircleAlert
-                  className="shrink-0 text-red-300"
-                  size={22}
+                  className="
+                    shrink-0
+                    text-red-300
+                  "
+                  size={20}
                 />
 
-                <p className="font-body text-sm leading-6 text-red-100/75">
+                <p
+                  className="
+                    font-body
+                    text-[13px]
+                    leading-6
+                    text-red-100/75
+
+                    sm:text-sm
+                  "
+                >
                   {pack.soldout
                     ? t(
                         "pack.full",
@@ -1650,46 +2069,89 @@ export function PackPage() {
               </div>
             )}
 
-            {/* QUICK SELECTION */}
+            {/* ===============================================
+                QUICK SELECTION
+            =============================================== */}
+
             {choiceGroups.length >
               0 && (
               <div
                 className="
-                  mt-8
-                  rounded-[26px]
+                  mt-6
+
+                  rounded-[22px]
+
                   border
                   border-white/[0.07]
                   bg-[#111]
-                  p-5
+
+                  p-4
+
+                  sm:mt-8
+                  sm:rounded-[26px]
                   sm:p-6
                 "
               >
-                <div className="flex items-center gap-3">
+                <div
+                  className="
+                    flex
+                    items-center
+                    gap-3
+                  "
+                >
                   <span
                     className="
                       grid
-                      h-11
-                      w-11
+
+                      h-10
+                      w-10
+
                       shrink-0
                       place-items-center
-                      rounded-[13px]
+
+                      rounded-[12px]
+
                       bg-secondary/10
                       text-secondary
+
+                      sm:h-11
+                      sm:w-11
+                      sm:rounded-[13px]
                     "
                   >
                     <WandSparkles
-                      size={20}
+                      size={19}
                     />
                   </span>
 
                   <div>
-                    <h2 className="font-title text-xl uppercase">
+                    <h2
+                      className="
+                        font-title
+
+                        text-lg
+
+                        uppercase
+
+                        sm:text-xl
+                      "
+                    >
                       {t(
                         "pack.quickTitle",
                       )}
                     </h2>
 
-                    <p className="mt-1 font-body text-xs text-white/[0.35]">
+                    <p
+                      className="
+                        mt-0.5
+                        font-body
+                        text-[11px]
+                        text-white/[0.35]
+
+                        sm:mt-1
+                        sm:text-xs
+                      "
+                    >
                       {t(
                         "pack.quickText",
                       )}
@@ -1697,9 +2159,29 @@ export function PackPage() {
                   </div>
                 </div>
 
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div
+                  className="
+                    mt-4
+                    grid
+                    gap-3
+
+                    sm:mt-5
+                    sm:grid-cols-2
+                    sm:gap-4
+                  "
+                >
                   <label>
-                    <span className="mb-2 block font-subtitle text-xs text-white/50">
+                    <span
+                      className="
+                        mb-2
+                        block
+                        font-subtitle
+                        text-[11px]
+                        text-white/50
+
+                        sm:text-xs
+                      "
+                    >
                       {t(
                         "filters.startDate",
                       )}
@@ -1722,7 +2204,17 @@ export function PackPage() {
                   </label>
 
                   <label>
-                    <span className="mb-2 block font-subtitle text-xs text-white/50">
+                    <span
+                      className="
+                        mb-2
+                        block
+                        font-subtitle
+                        text-[11px]
+                        text-white/50
+
+                        sm:text-xs
+                      "
+                    >
                       {t(
                         "filters.endDate",
                       )}
@@ -1754,7 +2246,13 @@ export function PackPage() {
                   onClick={
                     applyQuickSelection
                   }
-                  className="secondary-button mt-4 w-full"
+                  className="
+                    secondary-button
+                    mt-3
+                    w-full
+
+                    sm:mt-4
+                  "
                 >
                   <WandSparkles
                     size={18}
@@ -1767,28 +2265,59 @@ export function PackPage() {
               </div>
             )}
 
-            {/* EVENTS */}
-            <div className="mt-10">
-              <h2 className="font-title text-2xl uppercase">
+            {/* ===============================================
+                EVENTS
+            =============================================== */}
+
+            <div
+              className="
+                mt-7
+
+                sm:mt-10
+              "
+            >
+              <h2
+                className="
+                  font-title
+                  text-xl
+                  uppercase
+
+                  sm:text-2xl
+                "
+              >
                 {t(
                   "pack.selectedEvents",
                 )}
               </h2>
 
-              <div className="mt-5 space-y-4">
+              <div
+                className="
+                  mt-4
+                  space-y-3
 
-                {/* REQUIRED EVENTS */}
+                  sm:mt-5
+                  sm:space-y-4
+                "
+              >
+                {/* REQUIRED */}
+
                 {requiredEvents.map(
-                  (item) => (
+                  (
+                    item,
+                  ) => (
                     <article
                       key={
                         item.id
                       }
                       className={`
-                        rounded-[24px]
+                        rounded-[20px]
                         border
                         bg-[#111]
-                        p-5
+
+                        p-4
+
+                        sm:rounded-[24px]
+                        sm:p-5
 
                         ${
                           item.event.soldout
@@ -1797,15 +2326,30 @@ export function PackPage() {
                         }
                       `}
                     >
-                      <div className="flex items-center gap-4">
+                      <div
+                        className="
+                          flex
+                          items-center
+                          gap-3
+
+                          sm:gap-4
+                        "
+                      >
                         <span
                           className={`
                             grid
-                            h-11
-                            w-11
+
+                            h-10
+                            w-10
+
                             shrink-0
                             place-items-center
-                            rounded-[13px]
+
+                            rounded-[12px]
+
+                            sm:h-11
+                            sm:w-11
+                            sm:rounded-[13px]
 
                             ${
                               item.event.soldout
@@ -1816,22 +2360,29 @@ export function PackPage() {
                         >
                           {item.event.soldout ? (
                             <CircleAlert
-                              size={20}
+                              size={19}
                             />
                           ) : (
                             <PackageCheck
-                              size={20}
+                              size={19}
                             />
                           )}
                         </span>
 
-                        <div className="min-w-0 flex-1">
+                        <div
+                          className="
+                            min-w-0
+                            flex-1
+                          "
+                        >
                           <span
                             className={`
                               font-subtitle
-                              text-[9px]
+                              text-[8px]
                               uppercase
                               tracking-[0.14em]
+
+                              sm:text-[9px]
 
                               ${
                                 item.event.soldout
@@ -1849,16 +2400,46 @@ export function PackPage() {
                                 )}
                           </span>
 
-                          <h3 className="mt-1 font-subtitle text-lg text-white/90">
+                          <h3
+                            className="
+                              mt-1
+                              font-subtitle
+                              text-[15px]
+                              text-white/90
+
+                              sm:text-lg
+                            "
+                          >
                             {
                               item.event.name
                             }
                           </h3>
 
-                          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-body text-xs text-white/35">
-                            <span className="flex items-center gap-1.5">
+                          <div
+                            className="
+                              mt-1.5
+                              flex
+                              flex-wrap
+                              items-center
+                              gap-x-3
+                              gap-y-1
+                              font-body
+                              text-[10px]
+                              text-white/35
+
+                              sm:mt-2
+                              sm:text-xs
+                            "
+                          >
+                            <span
+                              className="
+                                flex
+                                items-center
+                                gap-1.5
+                              "
+                            >
                               <CalendarDays
-                                size={14}
+                                size={13}
                                 className="shrink-0"
                               />
 
@@ -1867,17 +2448,32 @@ export function PackPage() {
                                 item.event.startTime,
                                 {
                                   locale,
+
                                   includeYear:
                                     false,
                                 },
                               )}
                             </span>
 
-                            <span className="h-1 w-1 rounded-full bg-white/15" />
+                            <span
+                              className="
+                                h-1
+                                w-1
+                                rounded-full
+                                bg-white/15
+                              "
+                            />
 
-                            <span className="flex min-w-0 items-center gap-1.5">
+                            <span
+                              className="
+                                flex
+                                min-w-0
+                                items-center
+                                gap-1.5
+                              "
+                            >
                               <MapPin
-                                size={14}
+                                size={13}
                                 className="shrink-0"
                               />
 
@@ -1896,11 +2492,16 @@ export function PackPage() {
                 )}
 
                 {/* CHOICE GROUPS */}
+
                 {choiceGroups.map(
-                  (group) => {
+                  (
+                    group,
+                  ) => {
                     const validation =
                       choiceValidation.find(
-                        (item) =>
+                        (
+                          item,
+                        ) =>
                           item.key ===
                           group.key,
                       );
@@ -1911,22 +2512,39 @@ export function PackPage() {
                           group.key
                         }
                         className="
-                          rounded-[26px]
+                          rounded-[22px]
+
                           border
                           border-white/[0.07]
                           bg-[#111]
-                          p-5
+
+                          p-4
+
+                          sm:rounded-[26px]
                           sm:p-6
                         "
                       >
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div
+                          className="
+                            flex
+                            flex-col
+                            gap-2.5
+
+                            sm:flex-row
+                            sm:items-start
+                            sm:justify-between
+                            sm:gap-3
+                          "
+                        >
                           <div>
                             <span
                               className="
                                 font-subtitle
-                                text-[9px]
+                                text-[8px]
                                 uppercase
                                 tracking-[0.14em]
+
+                                sm:text-[9px]
                               "
                               style={{
                                 color:
@@ -1938,7 +2556,16 @@ export function PackPage() {
                               )}
                             </span>
 
-                            <h3 className="mt-1 font-title text-xl uppercase">
+                            <h3
+                              className="
+                                mt-1
+                                font-title
+                                text-lg
+                                uppercase
+
+                                sm:text-xl
+                              "
+                            >
                               {
                                 group.title
                               }
@@ -1947,13 +2574,20 @@ export function PackPage() {
 
                           <span
                             className={`
+                              w-fit
                               rounded-full
-                              px-3
-                              py-2
+
+                              px-2.5
+                              py-1.5
+
                               font-subtitle
-                              text-[9px]
+                              text-[8px]
                               uppercase
                               tracking-[0.08em]
+
+                              sm:px-3
+                              sm:py-2
+                              sm:text-[9px]
 
                               ${
                                 validation?.valid
@@ -1976,9 +2610,20 @@ export function PackPage() {
                           </span>
                         </div>
 
-                        <div className="mt-5 grid gap-3">
+                        <div
+                          className="
+                            mt-4
+                            grid
+                            gap-2.5
+
+                            sm:mt-5
+                            sm:gap-3
+                          "
+                        >
                           {group.events.map(
-                            (item) => {
+                            (
+                              item,
+                            ) => {
                               const selected =
                                 selectedChoiceIds.includes(
                                   item.id,
@@ -2007,13 +2652,21 @@ export function PackPage() {
                                   className={`
                                     flex
                                     items-center
-                                    gap-4
-                                    rounded-[20px]
+
+                                    gap-3
+
+                                    rounded-[17px]
                                     border
-                                    p-4
+
+                                    p-3
+
                                     text-left
                                     transition-all
                                     duration-200
+
+                                    sm:gap-4
+                                    sm:rounded-[20px]
+                                    sm:p-4
 
                                     ${
                                       selected
@@ -2027,11 +2680,18 @@ export function PackPage() {
                                   <span
                                     className={`
                                       grid
-                                      h-10
-                                      w-10
+
+                                      h-9
+                                      w-9
+
                                       shrink-0
                                       place-items-center
-                                      rounded-[12px]
+
+                                      rounded-[11px]
+
+                                      sm:h-10
+                                      sm:w-10
+                                      sm:rounded-[12px]
 
                                       ${
                                         selected
@@ -2044,26 +2704,34 @@ export function PackPage() {
                                   >
                                     {selected ? (
                                       <TicketCheck
-                                        size={19}
+                                        size={18}
                                       />
                                     ) : available ? (
                                       <CalendarDays
-                                        size={18}
+                                        size={17}
                                       />
                                     ) : (
                                       <CircleAlert
-                                        size={18}
+                                        size={17}
                                       />
                                     )}
                                   </span>
 
-                                  <span className="min-w-0 flex-1">
+                                  <span
+                                    className="
+                                      min-w-0
+                                      flex-1
+                                    "
+                                  >
                                     <strong
                                       className={`
                                         block
                                         truncate
                                         font-subtitle
-                                        text-sm
+
+                                        text-[13px]
+
+                                        sm:text-sm
 
                                         ${
                                           selected
@@ -2077,11 +2745,36 @@ export function PackPage() {
                                       }
                                     </strong>
 
-                                    <span className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 font-body text-[10px] text-white/35">
-                                      <span className="flex items-center gap-1.5">
+                                    <span
+                                      className="
+                                        mt-1
+                                        flex
+                                        flex-wrap
+                                        items-center
+                                        gap-x-2
+                                        gap-y-1
+                                        font-body
+                                        text-[9px]
+                                        text-white/35
+
+                                        sm:mt-1.5
+                                        sm:gap-x-3
+                                        sm:text-[10px]
+                                      "
+                                    >
+                                      <span
+                                        className="
+                                          flex
+                                          items-center
+                                          gap-1.5
+                                        "
+                                      >
                                         <CalendarDays
-                                          size={12}
-                                          className="shrink-0 text-white/25"
+                                          size={11}
+                                          className="
+                                            shrink-0
+                                            text-white/25
+                                          "
                                         />
 
                                         {formatEventDate(
@@ -2089,6 +2782,7 @@ export function PackPage() {
                                           item.event.startTime,
                                           {
                                             locale,
+
                                             includeYear:
                                               false,
                                           },
@@ -2097,12 +2791,29 @@ export function PackPage() {
 
                                       {item.event.location && (
                                         <>
-                                          <span className="h-1 w-1 rounded-full bg-white/15" />
+                                          <span
+                                            className="
+                                              h-1
+                                              w-1
+                                              rounded-full
+                                              bg-white/15
+                                            "
+                                          />
 
-                                          <span className="flex min-w-0 items-center gap-1.5">
+                                          <span
+                                            className="
+                                              flex
+                                              min-w-0
+                                              items-center
+                                              gap-1.5
+                                            "
+                                          >
                                             <MapPin
-                                              size={12}
-                                              className="shrink-0 text-white/25"
+                                              size={11}
+                                              className="
+                                                shrink-0
+                                                text-white/25
+                                              "
                                             />
 
                                             <span className="truncate">
@@ -2117,9 +2828,27 @@ export function PackPage() {
                                   </span>
 
                                   {selected && (
-                                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-green-400/25 bg-green-400/10 text-green-300">
+                                    <span
+                                      className="
+                                        grid
+
+                                        h-7
+                                        w-7
+
+                                        shrink-0
+                                        place-items-center
+                                        rounded-full
+                                        border
+                                        border-green-400/25
+                                        bg-green-400/10
+                                        text-green-300
+
+                                        sm:h-8
+                                        sm:w-8
+                                      "
+                                    >
                                       <TicketCheck
-                                        size={16}
+                                        size={15}
                                         strokeWidth={2.5}
                                       />
                                     </span>
@@ -2137,22 +2866,49 @@ export function PackPage() {
             </div>
           </section>
 
-          {/* RIGHT */}
+          {/* =================================================
+              RIGHT / SELECTION
+          ================================================= */}
+
           <aside
             className="
               h-fit
-              rounded-[28px]
+
+              rounded-[22px]
+
               border
               border-white/[0.08]
               bg-[#111]
-              p-5
+
+              p-4
+
+              sm:rounded-[26px]
               sm:p-6
+
               lg:sticky
               lg:top-28
+              lg:rounded-[28px]
             "
           >
-            <div className="flex items-end justify-between gap-3">
-              <h2 className="font-title text-2xl uppercase">
+            <div
+              className="
+                flex
+                items-end
+                justify-between
+                gap-3
+              "
+            >
+              <h2
+                className="
+                  font-title
+
+                  text-xl
+
+                  uppercase
+
+                  sm:text-2xl
+                "
+              >
                 {t(
                   "pack.yourSelection",
                 )}
@@ -2160,7 +2916,27 @@ export function PackPage() {
 
               {totalPackTickets >
                 0 && (
-                <span className="shrink-0 rounded-full border border-white/[0.07] bg-[#161616] px-3 py-1.5 font-subtitle text-[9px] uppercase tracking-[0.08em] text-white/35">
+                <span
+                  className="
+                    shrink-0
+                    rounded-full
+                    border
+                    border-white/[0.07]
+                    bg-[#161616]
+
+                    px-2.5
+                    py-1.5
+
+                    font-subtitle
+                    text-[8px]
+                    uppercase
+                    tracking-[0.08em]
+                    text-white/35
+
+                    sm:px-3
+                    sm:text-[9px]
+                  "
+                >
                   {
                     totalPackTickets
                   }{" "}
@@ -2173,17 +2949,36 @@ export function PackPage() {
               )}
             </div>
 
-            {/* WOMAN + MAN */}
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            {/* ===============================================
+                WOMAN + MAN
+            =============================================== */}
 
+            <div
+              className="
+                mt-4
+                grid
+                grid-cols-2
+
+                gap-2
+
+                sm:mt-6
+                sm:gap-3
+              "
+            >
               {/* WOMAN */}
+
               <div
                 className={`
                   relative
-                  rounded-[22px]
+                  rounded-[18px]
                   border
-                  p-4
+
+                  p-3
+
                   transition
+
+                  sm:rounded-[22px]
+                  sm:p-4
 
                   ${
                     femaleQuantity >
@@ -2195,19 +2990,59 @@ export function PackPage() {
               >
                 {femaleQuantity >
                   0 && (
-                  <span className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-full bg-[#ff4f9a]/15 text-[#ff6aa8]">
+                  <span
+                    className="
+                      absolute
+
+                      right-2.5
+                      top-2.5
+
+                      grid
+                      h-5
+                      w-5
+                      place-items-center
+                      rounded-full
+                      bg-[#ff4f9a]/15
+                      text-[#ff6aa8]
+
+                      sm:right-3
+                      sm:top-3
+                      sm:h-6
+                      sm:w-6
+                    "
+                  >
                     <Check
-                      size={13}
+                      size={12}
                     />
                   </span>
                 )}
 
-                <span className="font-subtitle text-[10px] uppercase tracking-[0.1em] text-white/40">
+                <span
+                  className="
+                    font-subtitle
+
+                    text-[9px]
+
+                    uppercase
+                    tracking-[0.1em]
+                    text-white/40
+
+                    sm:text-[10px]
+                  "
+                >
                   Femme
                 </span>
 
                 <strong
-                  className="mt-1 block font-title text-2xl"
+                  className="
+                    mt-1
+                    block
+                    font-title
+
+                    text-xl
+
+                    sm:text-2xl
+                  "
                   style={{
                     color:
                       packColor,
@@ -2219,7 +3054,18 @@ export function PackPage() {
                   )}
                 </strong>
 
-                <p className="mt-1 font-body text-[10px] text-white/25">
+                <p
+                  className="
+                    mt-1
+                    font-body
+
+                    text-[9px]
+
+                    text-white/25
+
+                    sm:text-[10px]
+                  "
+                >
                   {femaleMaximum ===
                   null
                     ? t(
@@ -2227,19 +3073,33 @@ export function PackPage() {
                       )
                     : `${availabilityLabel(
                         femaleMaximum,
+
                         t(
                           "event.unknownStock",
                         ),
-                      )} restant${femaleMaximum > 1 ? "s" : ""}`}
+                      )} restant${
+                        femaleMaximum >
+                        1
+                          ? "s"
+                          : ""
+                      }`}
                 </p>
 
-                <div className="mt-4">
+                <div
+                  className="
+                    mt-3
+
+                    sm:mt-4
+                  "
+                >
                   <QuantityInput
                     compact
                     value={
                       femaleQuantity
                     }
-                    minimum={0}
+                    minimum={
+                      0
+                    }
                     maximum={
                       femaleMaximum
                     }
@@ -2259,13 +3119,19 @@ export function PackPage() {
               </div>
 
               {/* MAN */}
+
               <div
                 className={`
                   relative
-                  rounded-[22px]
+                  rounded-[18px]
                   border
-                  p-4
+
+                  p-3
+
                   transition
+
+                  sm:rounded-[22px]
+                  sm:p-4
 
                   ${
                     maleQuantity >
@@ -2277,19 +3143,59 @@ export function PackPage() {
               >
                 {maleQuantity >
                   0 && (
-                  <span className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-full bg-secondary/15 text-secondary">
+                  <span
+                    className="
+                      absolute
+
+                      right-2.5
+                      top-2.5
+
+                      grid
+                      h-5
+                      w-5
+                      place-items-center
+                      rounded-full
+                      bg-secondary/15
+                      text-secondary
+
+                      sm:right-3
+                      sm:top-3
+                      sm:h-6
+                      sm:w-6
+                    "
+                  >
                     <Check
-                      size={13}
+                      size={12}
                     />
                   </span>
                 )}
 
-                <span className="font-subtitle text-[10px] uppercase tracking-[0.1em] text-white/40">
+                <span
+                  className="
+                    font-subtitle
+
+                    text-[9px]
+
+                    uppercase
+                    tracking-[0.1em]
+                    text-white/40
+
+                    sm:text-[10px]
+                  "
+                >
                   Homme
                 </span>
 
                 <strong
-                  className="mt-1 block font-title text-2xl"
+                  className="
+                    mt-1
+                    block
+                    font-title
+
+                    text-xl
+
+                    sm:text-2xl
+                  "
                   style={{
                     color:
                       packColor,
@@ -2301,7 +3207,18 @@ export function PackPage() {
                   )}
                 </strong>
 
-                <p className="mt-1 font-body text-[10px] text-white/25">
+                <p
+                  className="
+                    mt-1
+                    font-body
+
+                    text-[9px]
+
+                    text-white/25
+
+                    sm:text-[10px]
+                  "
+                >
                   {maleMaximum ===
                   null
                     ? t(
@@ -2309,19 +3226,33 @@ export function PackPage() {
                       )
                     : `${availabilityLabel(
                         maleMaximum,
+
                         t(
                           "event.unknownStock",
                         ),
-                      )} restant${maleMaximum > 1 ? "s" : ""}`}
+                      )} restant${
+                        maleMaximum >
+                        1
+                          ? "s"
+                          : ""
+                      }`}
                 </p>
 
-                <div className="mt-4">
+                <div
+                  className="
+                    mt-3
+
+                    sm:mt-4
+                  "
+                >
                   <QuantityInput
                     compact
                     value={
                       maleQuantity
                     }
-                    minimum={0}
+                    minimum={
+                      0
+                    }
                     maximum={
                       maleMaximum
                     }
@@ -2341,20 +3272,63 @@ export function PackPage() {
               </div>
             </div>
 
-            {/* PACK EVENTS SUMMARY */}
-            <div className="mt-5 rounded-[20px] border border-white/[0.07] bg-[#151515] p-4">
-              <strong className="font-subtitle text-sm text-white/85">
+            {/* ===============================================
+                PACK EVENTS SUMMARY
+            =============================================== */}
+
+            <div
+              className="
+                mt-4
+
+                rounded-[18px]
+
+                border
+                border-white/[0.07]
+                bg-[#151515]
+
+                p-3
+
+                sm:mt-5
+                sm:rounded-[20px]
+                sm:p-4
+              "
+            >
+              <strong
+                className="
+                  font-subtitle
+
+                  text-[13px]
+
+                  text-white/85
+
+                  sm:text-sm
+                "
+              >
                 Soirées du pack
               </strong>
 
-              <div className="mt-4 space-y-3">
+              <div
+                className="
+                  mt-3
+                  space-y-2.5
+
+                  sm:mt-4
+                  sm:space-y-3
+                "
+              >
                 {requiredEvents.map(
-                  (item) => (
+                  (
+                    item,
+                  ) => (
                     <div
                       key={
                         item.id
                       }
-                      className="flex items-center gap-3"
+                      className="
+                        flex
+                        items-center
+                        gap-3
+                      "
                     >
                       <span
                         className={`
@@ -2385,12 +3359,36 @@ export function PackPage() {
                         )}
                       </span>
 
-                      <div className="min-w-0 flex-1">
-                        <span className="block font-body text-[11px] text-white/30">
+                      <div
+                        className="
+                          min-w-0
+                          flex-1
+                        "
+                      >
+                        <span
+                          className="
+                            block
+                            font-body
+                            text-[10px]
+                            text-white/30
+
+                            sm:text-[11px]
+                          "
+                        >
                           Inclus
                         </span>
 
-                        <strong className="block truncate font-subtitle text-xs text-white/65">
+                        <strong
+                          className="
+                            block
+                            truncate
+                            font-subtitle
+                            text-[11px]
+                            text-white/65
+
+                            sm:text-xs
+                          "
+                        >
                           {
                             item.event.name
                           }
@@ -2401,10 +3399,14 @@ export function PackPage() {
                 )}
 
                 {choiceGroups.map(
-                  (group) => {
+                  (
+                    group,
+                  ) => {
                     const selectedInGroup =
                       group.events.filter(
-                        (item) =>
+                        (
+                          item,
+                        ) =>
                           selectedChoiceIds.includes(
                             item.id,
                           ),
@@ -2419,7 +3421,14 @@ export function PackPage() {
                         key={
                           group.key
                         }
-                        className="flex items-start gap-3 border-t border-white/[0.05] pt-3"
+                        className="
+                          flex
+                          items-start
+                          gap-3
+                          border-t
+                          border-white/[0.05]
+                          pt-3
+                        "
                       >
                         <span
                           className={`
@@ -2451,22 +3460,51 @@ export function PackPage() {
                           )}
                         </span>
 
-                        <div className="min-w-0 flex-1">
-                          <span className="block font-body text-[10px] text-white/30">
+                        <div
+                          className="
+                            min-w-0
+                            flex-1
+                          "
+                        >
+                          <span
+                            className="
+                              block
+                              font-body
+                              text-[9px]
+                              text-white/30
+
+                              sm:text-[10px]
+                            "
+                          >
                             {
                               group.title
                             }
                           </span>
 
                           {hasSelection ? (
-                            <div className="mt-0.5 space-y-1">
+                            <div
+                              className="
+                                mt-0.5
+                                space-y-1
+                              "
+                            >
                               {selectedInGroup.map(
-                                (item) => (
+                                (
+                                  item,
+                                ) => (
                                   <strong
                                     key={
                                       item.id
                                     }
-                                    className="block truncate font-subtitle text-xs text-white/65"
+                                    className="
+                                      block
+                                      truncate
+                                      font-subtitle
+                                      text-[11px]
+                                      text-white/65
+
+                                      sm:text-xs
+                                    "
                                   >
                                     {
                                       item.event.name
@@ -2476,7 +3514,17 @@ export function PackPage() {
                               )}
                             </div>
                           ) : (
-                            <span className="mt-0.5 block font-body text-[10px] text-red-300/55">
+                            <span
+                              className="
+                                mt-0.5
+                                block
+                                font-body
+                                text-[9px]
+                                text-red-300/55
+
+                                sm:text-[10px]
+                              "
+                            >
                               Aucune soirée sélectionnée
                             </span>
                           )}
@@ -2488,23 +3536,77 @@ export function PackPage() {
               </div>
             </div>
 
-            {/* OPTIONS */}
+            {/* ===============================================
+                OPTIONS
+            =============================================== */}
+
             {availableOptions.length >
               0 && (
-              <div className="mt-7">
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] border border-secondary/15 bg-secondary/[0.08] text-secondary">
+              <div
+                className="
+                  mt-5
+
+                  sm:mt-7
+                "
+              >
+                <div
+                  className="
+                    flex
+                    items-center
+                    gap-3
+                  "
+                >
+                  <span
+                    className="
+                      grid
+
+                      h-9
+                      w-9
+
+                      shrink-0
+                      place-items-center
+
+                      rounded-[11px]
+
+                      border
+                      border-secondary/15
+                      bg-secondary/[0.08]
+                      text-secondary
+
+                      sm:h-10
+                      sm:w-10
+                      sm:rounded-[12px]
+                    "
+                  >
                     <BadgePlus
-                      size={18}
+                      size={17}
                     />
                   </span>
 
                   <div className="min-w-0">
-                    <strong className="font-subtitle text-sm text-white/90">
+                    <strong
+                      className="
+                        font-subtitle
+                        text-[13px]
+                        text-white/90
+
+                        sm:text-sm
+                      "
+                    >
                       Options
                     </strong>
 
-                    <p className="mt-0.5 font-body text-[10px] leading-4 text-white/30">
+                    <p
+                      className="
+                        mt-0.5
+                        font-body
+                        text-[9px]
+                        leading-4
+                        text-white/30
+
+                        sm:text-[10px]
+                      "
+                    >
                       Les options s’ajoutent au prix de ton pack.
                     </p>
                   </div>
@@ -2512,29 +3614,74 @@ export function PackPage() {
 
                 {totalPackTickets ===
                   0 && (
-                  <div className="mt-3 flex items-center gap-3 rounded-[16px] border border-white/[0.07] bg-[#151515] px-4 py-3">
+                  <div
+                    className="
+                      mt-3
+                      flex
+                      items-center
+                      gap-3
+                      rounded-[14px]
+                      border
+                      border-white/[0.07]
+                      bg-[#151515]
+
+                      px-3
+                      py-2.5
+
+                      sm:rounded-[16px]
+                      sm:px-4
+                      sm:py-3
+                    "
+                  >
                     <CircleAlert
                       size={15}
-                      className="shrink-0 text-white/25"
+                      className="
+                        shrink-0
+                        text-white/25
+                      "
                     />
 
-                    <p className="font-body text-[11px] leading-5 text-white/35">
+                    <p
+                      className="
+                        font-body
+                        text-[10px]
+                        leading-5
+                        text-white/35
+
+                        sm:text-[11px]
+                      "
+                    >
                       Sélectionne au moins{" "}
-                      <strong className="font-subtitle text-white/65">
+
+                      <strong
+                        className="
+                          font-subtitle
+                          text-white/65
+                        "
+                      >
                         1 pack
                       </strong>{" "}
+
                       avant d’ajouter une option.
                     </p>
                   </div>
                 )}
 
-                <div className="mt-3 space-y-2.5">
+                <div
+                  className="
+                    mt-3
+                    space-y-2
+                  "
+                >
                   {availableOptions.map(
-                    (extra) => {
+                    (
+                      extra,
+                    ) => {
                       const quantity =
                         extraQuantities[
                           extra.key
-                        ] ?? 0;
+                        ] ??
+                        0;
 
                       const selected =
                         quantity >
@@ -2550,10 +3697,15 @@ export function PackPage() {
                             extra.key
                           }
                           className={`
-                            rounded-[18px]
+                            rounded-[16px]
                             border
-                            p-4
+
+                            p-3
+
                             transition
+
+                            sm:rounded-[18px]
+                            sm:p-4
 
                             ${
                               selected
@@ -2562,30 +3714,110 @@ export function PackPage() {
                             }
                           `}
                         >
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="min-w-0 flex-1">
-                              <strong className="block font-subtitle text-sm leading-5 text-white/85">
+                          <div
+                            className="
+                              flex
+                              items-start
+                              justify-between
+
+                              gap-3
+
+                              sm:gap-4
+                            "
+                          >
+                            <div
+                              className="
+                                min-w-0
+                                flex-1
+                              "
+                            >
+                              <strong
+                                className="
+                                  block
+                                  font-subtitle
+
+                                  text-[13px]
+
+                                  leading-5
+                                  text-white/85
+
+                                  sm:text-sm
+                                "
+                              >
                                 {
                                   extra.displayName
                                 }
                               </strong>
 
-                              <span className="mt-1 inline-flex rounded-full bg-white/[0.045] px-2 py-1 font-subtitle text-[8px] uppercase tracking-[0.07em] text-white/30">
+                              <span
+                                className="
+                                  mt-1
+                                  inline-flex
+                                  rounded-full
+                                  bg-white/[0.045]
+
+                                  px-2
+                                  py-0.5
+
+                                  font-subtitle
+                                  text-[7px]
+                                  uppercase
+                                  tracking-[0.07em]
+                                  text-white/30
+
+                                  sm:py-1
+                                  sm:text-[8px]
+                                "
+                              >
                                 {
                                   extra.eventName
                                 }
                               </span>
 
                               {extra.description && (
-                                <p className="mt-2 whitespace-pre-wrap break-words font-body text-[10px] leading-[17px] text-white/35">
+                                <p
+                                  className="
+                                    mt-1.5
+                                    whitespace-pre-wrap
+                                    break-words
+                                    font-body
+                                    text-[9px]
+                                    leading-[15px]
+                                    text-white/35
+
+                                    sm:mt-2
+                                    sm:text-[10px]
+                                    sm:leading-[17px]
+                                  "
+                                >
                                   {
                                     extra.description
                                   }
                                 </p>
                               )}
 
-                              <div className="mt-2.5 flex flex-wrap items-end gap-x-2 gap-y-1">
-                                <strong className="font-title text-[21px] leading-none text-secondary">
+                              <div
+                                className="
+                                  mt-2
+                                  flex
+                                  flex-wrap
+                                  items-end
+                                  gap-x-2
+                                  gap-y-1
+
+                                  sm:mt-2.5
+                                "
+                              >
+                                <strong
+                                  className="
+                                    font-title
+                                    text-[19px]
+                                    leading-none
+                                    text-secondary
+
+                                    sm:text-[21px]
+                                  "
+                                >
                                   +
                                   {formatExtraMoney(
                                     extra.unitPrice,
@@ -2593,12 +3825,32 @@ export function PackPage() {
                                   )}
                                 </strong>
 
-                                <span className="pb-[1px] font-body text-[8px] uppercase tracking-[0.08em] text-white/25">
+                                <span
+                                  className="
+                                    pb-[1px]
+                                    font-body
+                                    text-[7px]
+                                    uppercase
+                                    tracking-[0.08em]
+                                    text-white/25
+
+                                    sm:text-[8px]
+                                  "
+                                >
                                   par option
                                 </span>
                               </div>
 
-                              <p className="mt-1 font-body text-[9px] text-white/20">
+                              <p
+                                className="
+                                  mt-1
+                                  font-body
+                                  text-[8px]
+                                  text-white/20
+
+                                  sm:text-[9px]
+                                "
+                              >
                                 En supplément du pack
                               </p>
                             </div>
@@ -2606,7 +3858,6 @@ export function PackPage() {
                             <div
                               className={`
                                 shrink-0
-                                pt-1
 
                                 ${
                                   disabled
@@ -2620,7 +3871,9 @@ export function PackPage() {
                                 value={
                                   quantity
                                 }
-                                minimum={0}
+                                minimum={
+                                  0
+                                }
                                 maximum={
                                   totalPackTickets
                                 }
@@ -2637,8 +3890,31 @@ export function PackPage() {
                           </div>
 
                           {selected && (
-                            <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3">
-                              <span className="font-body text-[10px] text-white/30">
+                            <div
+                              className="
+                                mt-2.5
+                                flex
+                                items-center
+                                justify-between
+                                gap-3
+                                border-t
+                                border-white/[0.06]
+
+                                pt-2.5
+
+                                sm:mt-3
+                                sm:pt-3
+                              "
+                            >
+                              <span
+                                className="
+                                  font-body
+                                  text-[9px]
+                                  text-white/30
+
+                                  sm:text-[10px]
+                                "
+                              >
                                 {
                                   quantity
                                 }{" "}
@@ -2649,7 +3925,15 @@ export function PackPage() {
                                 )}
                               </span>
 
-                              <strong className="font-subtitle text-xs text-secondary">
+                              <strong
+                                className="
+                                  font-subtitle
+                                  text-[11px]
+                                  text-secondary
+
+                                  sm:text-xs
+                                "
+                              >
                                 +
                                 {formatExtraMoney(
                                   quantity *
@@ -2667,37 +3951,99 @@ export function PackPage() {
               </div>
             )}
 
-            {/* TABLES */}
+            {/* ===============================================
+                TABLES
+            =============================================== */}
+
             {availableTables.length >
               0 && (
-              <div className="mt-7">
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] border border-[#ff4f9a]/15 bg-[#ff4f9a]/[0.07] text-[#ff6aa8]">
+              <div
+                className="
+                  mt-5
+
+                  sm:mt-7
+                "
+              >
+                <div
+                  className="
+                    flex
+                    items-center
+                    gap-3
+                  "
+                >
+                  <span
+                    className="
+                      grid
+                      h-9
+                      w-9
+                      shrink-0
+                      place-items-center
+                      rounded-[11px]
+
+                      border
+                      border-[#ff4f9a]/15
+                      bg-[#ff4f9a]/[0.07]
+                      text-[#ff6aa8]
+
+                      sm:h-10
+                      sm:w-10
+                      sm:rounded-[12px]
+                    "
+                  >
                     <Armchair
-                      size={19}
+                      size={18}
                     />
                   </span>
 
                   <div>
-                    <strong className="font-subtitle text-sm text-white/90">
+                    <strong
+                      className="
+                        font-subtitle
+                        text-[13px]
+                        text-white/90
+
+                        sm:text-sm
+                      "
+                    >
                       Tables
                     </strong>
 
-                    <p className="mt-0.5 font-body text-[10px] leading-4 text-white/30">
+                    <p
+                      className="
+                        mt-0.5
+                        font-body
+                        text-[9px]
+                        leading-4
+                        text-white/30
+
+                        sm:text-[10px]
+                      "
+                    >
                       Réserve ta table en payant uniquement l’acompte maintenant.
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-3 space-y-3">
+                <div
+                  className="
+                    mt-3
+                    space-y-2.5
+
+                    sm:space-y-3
+                  "
+                >
                   {availableTables.map(
-                    (extra) => {
+                    (
+                      extra,
+                    ) => {
                       const selected =
                         (
                           extraQuantities[
                             extra.key
-                          ] ?? 0
-                        ) > 0;
+                          ] ??
+                          0
+                        ) >
+                        0;
 
                       const fullPrice =
                         extra.fullPrice ??
@@ -2706,6 +4052,7 @@ export function PackPage() {
                       const remainingPrice =
                         Math.max(
                           0,
+
                           fullPrice -
                             extra.unitPrice,
                         );
@@ -2719,6 +4066,7 @@ export function PackPage() {
                           onClick={() => {
                             updateExtra(
                               extra.key,
+
                               selected
                                 ? 0
                                 : 1,
@@ -2732,11 +4080,15 @@ export function PackPage() {
                             group
                             w-full
                             overflow-hidden
-                            rounded-[20px]
+
+                            rounded-[18px]
+
                             border
                             text-left
                             transition-all
                             duration-200
+
+                            sm:rounded-[20px]
 
                             ${
                               selected
@@ -2745,17 +4097,72 @@ export function PackPage() {
                             }
                           `}
                         >
-                          <div className="flex items-start justify-between gap-4 p-4">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <strong className="font-subtitle text-[15px] leading-5 text-white/90">
+                          <div
+                            className="
+                              flex
+                              items-start
+                              justify-between
+
+                              gap-3
+                              p-3
+
+                              sm:gap-4
+                              sm:p-4
+                            "
+                          >
+                            <div
+                              className="
+                                min-w-0
+                                flex-1
+                              "
+                            >
+                              <div
+                                className="
+                                  flex
+                                  flex-wrap
+                                  items-center
+                                  gap-2
+                                "
+                              >
+                                <strong
+                                  className="
+                                    font-subtitle
+
+                                    text-[14px]
+
+                                    leading-5
+                                    text-white/90
+
+                                    sm:text-[15px]
+                                  "
+                                >
                                   {
                                     extra.displayName
                                   }
                                 </strong>
 
                                 {selected && (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-[#ff4f9a]/15 px-2 py-1 font-subtitle text-[8px] uppercase tracking-[0.08em] text-[#ff7eaf]">
+                                  <span
+                                    className="
+                                      inline-flex
+                                      items-center
+                                      gap-1
+                                      rounded-full
+                                      bg-[#ff4f9a]/15
+
+                                      px-2
+                                      py-0.5
+
+                                      font-subtitle
+                                      text-[7px]
+                                      uppercase
+                                      tracking-[0.08em]
+                                      text-[#ff7eaf]
+
+                                      sm:py-1
+                                      sm:text-[8px]
+                                    "
+                                  >
                                     <Check
                                       size={10}
                                     />
@@ -2765,14 +4172,48 @@ export function PackPage() {
                                 )}
                               </div>
 
-                              <span className="mt-1.5 inline-flex rounded-full bg-white/[0.045] px-2 py-1 font-subtitle text-[8px] uppercase tracking-[0.07em] text-white/30">
+                              <span
+                                className="
+                                  mt-1
+                                  inline-flex
+                                  rounded-full
+                                  bg-white/[0.045]
+
+                                  px-2
+                                  py-0.5
+
+                                  font-subtitle
+                                  text-[7px]
+                                  uppercase
+                                  tracking-[0.07em]
+                                  text-white/30
+
+                                  sm:mt-1.5
+                                  sm:py-1
+                                  sm:text-[8px]
+                                "
+                              >
                                 {
                                   extra.eventName
                                 }
                               </span>
 
                               {extra.description && (
-                                <p className="mt-2 whitespace-pre-wrap break-words font-body text-[11px] leading-5 text-white/35">
+                                <p
+                                  className="
+                                    mt-1.5
+                                    whitespace-pre-wrap
+                                    break-words
+                                    font-body
+                                    text-[10px]
+                                    leading-[18px]
+                                    text-white/35
+
+                                    sm:mt-2
+                                    sm:text-[11px]
+                                    sm:leading-5
+                                  "
+                                >
                                   {
                                     extra.description
                                   }
@@ -2803,20 +4244,80 @@ export function PackPage() {
                             </span>
                           </div>
 
-                          <div className="grid border-t border-white/[0.06] sm:grid-cols-3 sm:divide-x sm:divide-white/[0.06]">
-                            <div className="border-b border-white/[0.06] bg-[#ff4f9a]/[0.025] px-4 py-4 sm:border-b-0">
-                              <span className="block font-subtitle text-[8px] uppercase tracking-[0.1em] text-[#ff7eaf]/75">
+                          {/* PRICES */}
+
+                          <div
+                            className="
+                              grid
+                              border-t
+                              border-white/[0.06]
+
+                              sm:grid-cols-3
+                              sm:divide-x
+                              sm:divide-white/[0.06]
+                            "
+                          >
+                            {/* NOW */}
+
+                            <div
+                              className="
+                                border-b
+                                border-white/[0.06]
+                                bg-[#ff4f9a]/[0.025]
+
+                                px-3
+                                py-3
+
+                                sm:border-b-0
+                                sm:px-4
+                                sm:py-4
+                              "
+                            >
+                              <span
+                                className="
+                                  block
+                                  font-subtitle
+                                  text-[7px]
+                                  uppercase
+                                  tracking-[0.1em]
+                                  text-[#ff7eaf]/75
+
+                                  sm:text-[8px]
+                                "
+                              >
                                 À payer maintenant
                               </span>
 
-                              <strong className="mt-1 block font-title text-[23px] leading-none text-[#ff6aa8]">
+                              <strong
+                                className="
+                                  mt-1
+                                  block
+                                  font-title
+                                  text-[21px]
+                                  leading-none
+                                  text-[#ff6aa8]
+
+                                  sm:text-[23px]
+                                "
+                              >
                                 {formatExtraMoney(
                                   extra.unitPrice,
                                   locale,
                                 )}
                               </strong>
 
-                              <span className="mt-2 block font-body text-[9px] text-white/25">
+                              <span
+                                className="
+                                  mt-1.5
+                                  block
+                                  font-body
+                                  text-[8px]
+                                  text-white/25
+
+                                  sm:mt-2
+                                  sm:text-[9px]
+                                "
+                              >
                                 Acompte de{" "}
                                 {
                                   extra.depositPercentage ??
@@ -2826,48 +4327,172 @@ export function PackPage() {
                               </span>
                             </div>
 
-                            <div className="border-b border-white/[0.06] px-4 py-4 sm:border-b-0">
-                              <span className="block font-subtitle text-[8px] uppercase tracking-[0.1em] text-white/25">
+                            {/* TOTAL */}
+
+                            <div
+                              className="
+                                border-b
+                                border-white/[0.06]
+
+                                px-3
+                                py-3
+
+                                sm:border-b-0
+                                sm:px-4
+                                sm:py-4
+                              "
+                            >
+                              <span
+                                className="
+                                  block
+                                  font-subtitle
+                                  text-[7px]
+                                  uppercase
+                                  tracking-[0.1em]
+                                  text-white/25
+
+                                  sm:text-[8px]
+                                "
+                              >
                                 Prix total
                               </span>
 
-                              <strong className="mt-1 block font-title text-[23px] leading-none text-white/85">
+                              <strong
+                                className="
+                                  mt-1
+                                  block
+                                  font-title
+                                  text-[21px]
+                                  leading-none
+                                  text-white/85
+
+                                  sm:text-[23px]
+                                "
+                              >
                                 {formatExtraMoney(
                                   fullPrice,
                                   locale,
                                 )}
                               </strong>
 
-                              <span className="mt-2 block font-body text-[9px] text-white/20">
+                              <span
+                                className="
+                                  mt-1.5
+                                  block
+                                  font-body
+                                  text-[8px]
+                                  text-white/20
+
+                                  sm:mt-2
+                                  sm:text-[9px]
+                                "
+                              >
                                 Valeur totale de la table
                               </span>
                             </div>
 
-                            <div className="px-4 py-4">
-                              <span className="block font-subtitle text-[8px] uppercase tracking-[0.1em] text-white/25">
+                            {/* ON SITE */}
+
+                            <div
+                              className="
+                                px-3
+                                py-3
+
+                                sm:px-4
+                                sm:py-4
+                              "
+                            >
+                              <span
+                                className="
+                                  block
+                                  font-subtitle
+                                  text-[7px]
+                                  uppercase
+                                  tracking-[0.1em]
+                                  text-white/25
+
+                                  sm:text-[8px]
+                                "
+                              >
                                 À payer sur place
                               </span>
 
-                              <strong className="mt-1 block font-title text-[23px] leading-none text-white/65">
+                              <strong
+                                className="
+                                  mt-1
+                                  block
+                                  font-title
+                                  text-[21px]
+                                  leading-none
+                                  text-white/65
+
+                                  sm:text-[23px]
+                                "
+                              >
                                 {formatExtraMoney(
                                   remainingPrice,
                                   locale,
                                 )}
                               </strong>
 
-                              <span className="mt-2 block font-body text-[9px] text-white/20">
+                              <span
+                                className="
+                                  mt-1.5
+                                  block
+                                  font-body
+                                  text-[8px]
+                                  text-white/20
+
+                                  sm:mt-2
+                                  sm:text-[9px]
+                                "
+                              >
                                 Après déduction de l’acompte
                               </span>
                             </div>
                           </div>
 
                           {selected && (
-                            <div className="flex items-center justify-between gap-3 border-t border-[#ff4f9a]/10 bg-[#ff4f9a]/[0.035] px-4 py-3">
-                              <span className="font-body text-[10px] text-white/35">
+                            <div
+                              className="
+                                flex
+                                items-center
+                                justify-between
+                                gap-3
+
+                                border-t
+                                border-[#ff4f9a]/10
+                                bg-[#ff4f9a]/[0.035]
+
+                                px-3
+                                py-2.5
+
+                                sm:px-4
+                                sm:py-3
+                              "
+                            >
+                              <span
+                                className="
+                                  font-body
+                                  text-[9px]
+                                  text-white/35
+
+                                  sm:text-[10px]
+                                "
+                              >
                                 Seul l’acompte est ajouté à ta commande
                               </span>
 
-                              <strong className="shrink-0 font-subtitle text-xs text-[#ff7eaf]">
+                              <strong
+                                className="
+                                  shrink-0
+                                  font-subtitle
+                                  text-[11px]
+                                  text-[#ff7eaf]
+
+                                  sm:text-xs
+                                "
+                              >
                                 +
                                 {formatExtraMoney(
                                   extra.unitPrice,
@@ -2884,15 +4509,48 @@ export function PackPage() {
               </div>
             )}
 
-            {/* WARNING */}
+            {/* ===============================================
+                WARNING
+            =============================================== */}
+
             {!choicesValid && (
-              <div className="mt-5 flex gap-3 rounded-[16px] border border-secondary/20 bg-secondary/[0.07] p-4">
+              <div
+                className="
+                  mt-4
+                  flex
+                  gap-3
+
+                  rounded-[14px]
+
+                  border
+                  border-secondary/20
+                  bg-secondary/[0.07]
+
+                  p-3
+
+                  sm:mt-5
+                  sm:rounded-[16px]
+                  sm:p-4
+                "
+              >
                 <CircleAlert
                   size={18}
-                  className="shrink-0 text-secondary"
+                  className="
+                    shrink-0
+                    text-secondary
+                  "
                 />
 
-                <p className="font-body text-xs leading-5 text-orange-100/75">
+                <p
+                  className="
+                    font-body
+                    text-[11px]
+                    leading-5
+                    text-orange-100/75
+
+                    sm:text-xs
+                  "
+                >
                   {t(
                     "pack.completeChoices",
                   )}
@@ -2900,19 +4558,70 @@ export function PackPage() {
               </div>
             )}
 
-            {/* FEEDBACK */}
+            {/* ===============================================
+                FEEDBACK
+            =============================================== */}
+
             {feedback && (
-              <div className="mt-4 rounded-[16px] border border-red-500/20 bg-red-500/[0.08] p-4 font-body text-xs leading-5 text-red-200">
+              <div
+                className="
+                  mt-3
+
+                  rounded-[14px]
+
+                  border
+                  border-red-500/20
+                  bg-red-500/[0.08]
+
+                  p-3
+
+                  font-body
+                  text-[11px]
+                  leading-5
+                  text-red-200
+
+                  sm:mt-4
+                  sm:rounded-[16px]
+                  sm:p-4
+                  sm:text-xs
+                "
+              >
                 {
                   feedback
                 }
               </div>
             )}
 
-            {/* TOTAL */}
-            <div className="mt-7 flex items-end justify-between gap-4 border-t border-white/[0.08] pt-5">
+            {/* ===============================================
+                TOTAL
+            =============================================== */}
+
+            <div
+              className="
+                mt-5
+                flex
+                items-end
+                justify-between
+                gap-4
+                border-t
+                border-white/[0.08]
+
+                pt-4
+
+                sm:mt-7
+                sm:pt-5
+              "
+            >
               <div>
-                <span className="font-body text-xs text-white/30">
+                <span
+                  className="
+                    font-body
+                    text-[11px]
+                    text-white/30
+
+                    sm:text-xs
+                  "
+                >
                   {t(
                     "common.total",
                   )}
@@ -2920,10 +4629,24 @@ export function PackPage() {
 
                 {totalPackTickets >
                   0 && (
-                  <p className="mt-1 font-body text-[10px] text-white/20">
+                  <p
+                    className="
+                      mt-1
+                      font-body
+                      text-[9px]
+                      text-white/20
+
+                      sm:text-[10px]
+                    "
+                  >
                     {femaleQuantity >
                       0 &&
-                      `${femaleQuantity} femme${femaleQuantity > 1 ? "s" : ""}`}
+                      `${femaleQuantity} femme${
+                        femaleQuantity >
+                        1
+                          ? "s"
+                          : ""
+                      }`}
 
                     {femaleQuantity >
                       0 &&
@@ -2934,12 +4657,25 @@ export function PackPage() {
 
                     {maleQuantity >
                       0 &&
-                      `${maleQuantity} homme${maleQuantity > 1 ? "s" : ""}`}
+                      `${maleQuantity} homme${
+                        maleQuantity >
+                        1
+                          ? "s"
+                          : ""
+                      }`}
                   </p>
                 )}
               </div>
 
-              <strong className="font-title text-3xl">
+              <strong
+                className="
+                  font-title
+
+                  text-2xl
+
+                  sm:text-3xl
+                "
+              >
                 {formatMoney(
                   total,
                   locale,
@@ -2947,7 +4683,10 @@ export function PackPage() {
               </strong>
             </div>
 
-            {/* ADD */}
+            {/* ===============================================
+                ADD
+            =============================================== */}
+
             <button
               type="button"
               disabled={
@@ -2958,21 +4697,36 @@ export function PackPage() {
               }
               className="
                 group
-                mt-5
+
+                mt-4
+
                 flex
-                min-h-[56px]
+
+                min-h-[52px]
+
                 w-full
                 items-center
                 justify-center
                 gap-2.5
-                rounded-[16px]
+
+                rounded-[15px]
+
                 bg-secondary
                 px-5
                 font-subtitle
-                text-sm
+
+                text-[13px]
+
                 text-black
                 transition
+
+                sm:mt-5
+                sm:min-h-[56px]
+                sm:rounded-[16px]
+                sm:text-sm
+
                 hover:brightness-105
+
                 disabled:cursor-not-allowed
                 disabled:bg-[#242424]
                 disabled:text-[#777]

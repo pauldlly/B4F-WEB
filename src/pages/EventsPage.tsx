@@ -30,6 +30,10 @@ import type {
   PublicEvent,
 } from "../types";
 
+/* =========================================================
+   UNIQUE EVENTS
+========================================================= */
+
 function uniqueEvents(
   items: PublicEvent[],
 ) {
@@ -45,6 +49,10 @@ function uniqueEvents(
   );
 }
 
+/* =========================================================
+   CAPITALIZE
+========================================================= */
+
 function capitalize(
   value: string,
 ) {
@@ -53,10 +61,16 @@ function capitalize(
   }
 
   return (
-    value.charAt(0).toUpperCase() +
+    value
+      .charAt(0)
+      .toUpperCase() +
     value.slice(1)
   );
 }
+
+/* =========================================================
+   DATE PARTS
+========================================================= */
 
 function getDateParts(
   value: string,
@@ -64,12 +78,18 @@ function getDateParts(
 ) {
   if (
     !value ||
-    value === "unknown"
+    value ===
+      "unknown"
   ) {
     return {
-      weekday: "À venir",
-      day: "—",
-      month: "",
+      weekday:
+        "À venir",
+
+      day:
+        "—",
+
+      month:
+        "",
     };
   }
 
@@ -84,9 +104,14 @@ function getDateParts(
     )
   ) {
     return {
-      weekday: "À venir",
-      day: "—",
-      month: "",
+      weekday:
+        "À venir",
+
+      day:
+        "—",
+
+      month:
+        "",
     };
   }
 
@@ -96,7 +121,8 @@ function getDateParts(
         new Intl.DateTimeFormat(
           locale,
           {
-            weekday: "long",
+            weekday:
+              "long",
           },
         ).format(
           date,
@@ -107,7 +133,8 @@ function getDateParts(
       new Intl.DateTimeFormat(
         locale,
         {
-          day: "2-digit",
+          day:
+            "2-digit",
         },
       ).format(
         date,
@@ -118,7 +145,8 @@ function getDateParts(
         new Intl.DateTimeFormat(
           locale,
           {
-            month: "long",
+            month:
+              "long",
           },
         ).format(
           date,
@@ -127,21 +155,37 @@ function getDateParts(
   };
 }
 
+/* =========================================================
+   EVENTS PAGE
+========================================================= */
+
 export function EventsPage() {
   const {
     t,
     locale,
-  } = useI18n();
+  } =
+    useI18n();
 
   const [
     searchParams,
-  ] = useSearchParams();
+  ] =
+    useSearchParams();
+
+  /* =====================================================
+     INITIAL FILTERS
+  ===================================================== */
 
   const initialTypes =
     searchParams
-      .get("types")
-      ?.split(",")
-      .filter(Boolean) ??
+      .get(
+        "types",
+      )
+      ?.split(
+        ",",
+      )
+      .filter(
+        Boolean,
+      ) ??
     [];
 
   const [
@@ -152,7 +196,8 @@ export function EventsPage() {
       search:
         searchParams.get(
           "search",
-        ) ?? "",
+        ) ??
+        "",
 
       eventTypes:
         initialTypes,
@@ -166,6 +211,10 @@ export function EventsPage() {
       endDate:
         "",
     });
+
+  /* =====================================================
+     SEARCH
+  ===================================================== */
 
   const debouncedSearch =
     useDebouncedValue(
@@ -187,26 +236,43 @@ export function EventsPage() {
       ],
     );
 
+  /* =====================================================
+     QUERY
+  ===================================================== */
+
   const query =
     useEventsInfinite(
       queryFilters,
     );
 
+  /* =====================================================
+     EVENTS
+  ===================================================== */
+
   const events =
     useMemo(
       () =>
         uniqueEvents(
-          query.data?.pages.flatMap(
-            (page) =>
-              page.items,
-          ) ?? [],
+          query.data
+            ?.pages
+            .flatMap(
+              (
+                page,
+              ) =>
+                page.items,
+            ) ??
+            [],
         ).sort(
           (
             a,
             b,
           ) =>
-            eventTimestamp(a) -
-            eventTimestamp(b),
+            eventTimestamp(
+              a,
+            ) -
+            eventTimestamp(
+              b,
+            ),
         ),
       [
         query.data,
@@ -216,6 +282,10 @@ export function EventsPage() {
   const nextEvent =
     events[0] ??
     null;
+
+  /* =====================================================
+     GROUP BY DATE
+  ===================================================== */
 
   const grouped =
     useMemo(
@@ -227,7 +297,9 @@ export function EventsPage() {
           >();
 
         events.forEach(
-          (event) => {
+          (
+            event,
+          ) => {
             const key =
               event.eventDate ||
               "unknown";
@@ -235,9 +307,12 @@ export function EventsPage() {
             groups.set(
               key,
               [
-                ...(groups.get(
-                  key,
-                ) ?? []),
+                ...(
+                  groups.get(
+                    key,
+                  ) ??
+                  []
+                ),
 
                 event,
               ],
@@ -254,19 +329,40 @@ export function EventsPage() {
       ],
     );
 
-  const reset = () => {
-    setFilters({
-      search: "",
-      eventTypes: [],
-      datePreset: "all",
-      startDate: "",
-      endDate: "",
-    });
-  };
+  /* =====================================================
+     RESET
+  ===================================================== */
+
+  const reset =
+    () => {
+      setFilters({
+        search:
+          "",
+
+        eventTypes:
+          [],
+
+        datePreset:
+          "all",
+
+        startDate:
+          "",
+
+        endDate:
+          "",
+      });
+    };
+
+  /* =====================================================
+     PAGE
+  ===================================================== */
 
   return (
     <>
-      {/* RETIRE LE RECTANGLE ORANGE NATIF DANS L'INPUT */}
+      {/* =================================================
+          INPUT FOCUS
+      ================================================= */}
+
       <style>{`
         #events-filters input,
         #events-filters input:focus,
@@ -281,26 +377,40 @@ export function EventsPage() {
         }
       `}</style>
 
+      {/* =================================================
+          SEO
+      ================================================= */}
+
       <Seo
         title="Choisis ta nuit"
         description="Découvrez les prochaines soirées B4F à Barcelone."
         path="/events"
         image={
-          nextEvent?.imageUrl ||
+          nextEvent
+            ?.imageUrl ||
           media.club
         }
       />
 
-      {/* HERO */}
+      {/* =================================================
+          HERO
+      ================================================= */}
+
       <section
         className="
           relative
-          min-h-[68svh]
+          min-h-[52svh]
           bg-black
-          pt-20
+
+          sm:min-h-[60svh]
+
+          lg:min-h-[68svh]
         "
       >
-        {/* BACKGROUND — CLIPPÉ SÉPARÉMENT */}
+        {/* =================================================
+            BACKGROUND
+        ================================================= */}
+
         <div
           className="
             absolute
@@ -310,7 +420,8 @@ export function EventsPage() {
         >
           <img
             src={
-              nextEvent?.imageUrl ||
+              nextEvent
+                ?.imageUrl ||
               media.club
             }
             alt="B4F events"
@@ -325,6 +436,7 @@ export function EventsPage() {
           />
 
           {/* DARK LEFT */}
+
           <div
             className="
               absolute
@@ -334,6 +446,7 @@ export function EventsPage() {
           />
 
           {/* DARK BOTTOM */}
+
           <div
             className="
               absolute
@@ -343,20 +456,26 @@ export function EventsPage() {
           />
 
           {/* ORANGE */}
+
           <div
             className="
               party-orb
               party-orb-orange
               absolute
               -left-28
-              top-24
-              h-72
-              w-72
+              top-20
+              h-60
+              w-60
               opacity-35
+
+              sm:top-24
+              sm:h-72
+              sm:w-72
             "
           />
 
           {/* PINK */}
+
           <div
             className="
               party-orb
@@ -364,25 +483,41 @@ export function EventsPage() {
               absolute
               -right-24
               bottom-10
-              h-72
-              w-72
+              h-60
+              w-60
               opacity-35
+
+              sm:h-72
+              sm:w-72
             "
           />
         </div>
 
-        {/* HERO CONTENT */}
+        {/* =================================================
+            HERO CONTENT
+        ================================================= */}
+
         <div
           className="
             page-shell
             relative
             z-20
             flex
-            min-h-[68svh]
+
+            min-h-[52svh]
+
             items-end
-            pb-10
-            pt-28
-            sm:pb-12
+
+            pb-5
+            pt-16
+
+            sm:min-h-[60svh]
+            sm:pb-8
+            sm:pt-20
+
+            lg:min-h-[68svh]
+            lg:pb-10
+            lg:pt-28
           "
         >
           <Reveal
@@ -390,15 +525,23 @@ export function EventsPage() {
               w-full
             "
           >
-            {/* TITLE */}
+            {/* =============================================
+                TITLE
+            ============================================== */}
+
             <h1
               className="
                 max-w-5xl
                 font-title
-                text-[clamp(3.5rem,10vw,7.6rem)]
+
+                text-[clamp(3.25rem,15vw,5rem)]
+
                 uppercase
                 leading-[0.8]
-                tracking-[-0.06em]
+
+                sm:text-[clamp(4rem,11vw,6rem)]
+
+                lg:text-[clamp(3.5rem,10vw,7.6rem)]
               "
             >
               Choisis
@@ -418,14 +561,21 @@ export function EventsPage() {
               </span>
             </h1>
 
-            {/* FILTERS DIRECTEMENT SOUS LE TITRE */}
+            {/* =============================================
+                FILTERS
+            ============================================== */}
+
             <div
               id="events-filters"
               className="
                 relative
                 z-[100]
-                mt-8
+                mt-5
                 w-full
+
+                sm:mt-6
+
+                lg:mt-8
               "
             >
               <CatalogFiltersBar
@@ -444,19 +594,26 @@ export function EventsPage() {
         </div>
       </section>
 
-      {/* EVENTS */}
+      {/* =================================================
+          EVENTS
+      ================================================= */}
+
       <section
         className="
           relative
           z-0
           bg-[#0b0b0b]
-          pb-20
-          pt-4
-          sm:pb-24
-          sm:pt-6
+
+          pb-16
+          sm:pb-20
+
+          lg:pb-24
         "
       >
-        {/* BACKGROUND */}
+        {/* =================================================
+            BACKGROUND
+        ================================================= */}
+
         <div
           className="
             pointer-events-none
@@ -491,18 +648,28 @@ export function EventsPage() {
             relative
           "
         >
-          {/* LOADING */}
+          {/* =================================================
+              LOADING
+          ================================================= */}
+
           {query.isPending && (
             <div
               className="
-                mt-10
+                mt-6
                 grid
-                gap-5
+                gap-4
+
+                sm:mt-8
+                sm:gap-5
+
                 md:grid-cols-3
+
+                lg:mt-10
               "
             >
               {Array.from({
-                length: 6,
+                length:
+                  6,
               }).map(
                 (
                   _,
@@ -518,17 +685,27 @@ export function EventsPage() {
             </div>
           )}
 
-          {/* ERROR */}
+          {/* =================================================
+              ERROR
+          ================================================= */}
+
           {query.error && (
             <div
               className="
-                mt-10
-                rounded-[26px]
+                mt-6
+                rounded-[22px]
                 border
                 border-white/[0.07]
                 bg-[#111]
-                p-10
+                p-7
                 text-center
+
+                sm:mt-8
+                sm:rounded-[26px]
+                sm:p-9
+
+                lg:mt-10
+                lg:p-10
               "
             >
               <h3
@@ -572,35 +749,41 @@ export function EventsPage() {
             </div>
           )}
 
-          {/* EMPTY */}
+          {/* =================================================
+              EMPTY
+          ================================================= */}
+
           {!query.isPending &&
             !query.error &&
             events.length ===
               0 && (
-              <>
-                <div
-                  className="
-                    mt-8
-                    flex
-                    justify-center
-                  "
+              <div
+                className="
+                  mt-6
+                  flex
+                  justify-center
+
+                  sm:mt-8
+                "
+              >
+                <button
+                  type="button"
+                  onClick={
+                    reset
+                  }
+                  className="secondary-button"
                 >
-                  <button
-                    type="button"
-                    onClick={
-                      reset
-                    }
-                    className="secondary-button"
-                  >
-                    {t(
-                      "common.reset",
-                    )}
-                  </button>
-                </div>
-              </>
+                  {t(
+                    "common.reset",
+                  )}
+                </button>
+              </div>
             )}
 
-          {/* EVENTS */}
+          {/* =================================================
+              EVENTS GROUPS
+          ================================================= */}
+
           {!query.isPending &&
             !query.error &&
             grouped.map(
@@ -625,11 +808,18 @@ export function EventsPage() {
                     className="
                       relative
                       z-0
-                      mt-10
-                      sm:mt-14
+
+                      mt-7
+
+                      sm:mt-10
+
+                      lg:mt-14
                     "
                   >
-                    {/* DAY */}
+                    {/* =====================================
+                        DAY
+                    ====================================== */}
+
                     <Reveal
                       delay={Math.min(
                         groupIndex *
@@ -639,11 +829,15 @@ export function EventsPage() {
                     >
                       <div
                         className="
-                          mb-7
+                          mb-5
                           flex
                           items-center
-                          gap-4
-                          sm:mb-8
+                          gap-3
+
+                          sm:mb-7
+                          sm:gap-4
+
+                          lg:mb-8
                         "
                       >
                         <div
@@ -651,10 +845,13 @@ export function EventsPage() {
                             flex
                             shrink-0
                             items-center
-                            gap-3
+                            gap-2.5
+
+                            sm:gap-3
                           "
                         >
                           {/* NUMBER */}
+
                           <span
                             className="
                               bg-gradient-to-br
@@ -663,11 +860,15 @@ export function EventsPage() {
                               to-[#ff4f9a]
                               bg-clip-text
                               font-title
-                              text-[48px]
+
+                              text-[42px]
+
                               leading-[0.8]
-                              tracking-[-0.06em]
                               text-transparent
-                              sm:text-[58px]
+
+                              sm:text-[48px]
+
+                              lg:text-[58px]
                             "
                           >
                             {
@@ -676,16 +877,22 @@ export function EventsPage() {
                           </span>
 
                           {/* DAY + MONTH */}
+
                           <div>
                             <strong
                               className="
                                 block
                                 font-subtitle
-                                text-[11px]
+
+                                text-[10px]
+
                                 uppercase
                                 tracking-[0.1em]
                                 text-white/80
-                                sm:text-[13px]
+
+                                sm:text-[11px]
+
+                                lg:text-[13px]
                               "
                             >
                               {
@@ -698,10 +905,14 @@ export function EventsPage() {
                                 mt-1
                                 block
                                 font-body
-                                text-[9px]
+
+                                text-[8px]
+
                                 uppercase
                                 tracking-[0.13em]
                                 text-white/28
+
+                                sm:text-[9px]
                               "
                             >
                               {
@@ -712,18 +923,22 @@ export function EventsPage() {
                         </div>
 
                         {/* LINE */}
+
                         <span
                           className="
                             h-px
-                            min-w-6
+                            min-w-4
                             flex-1
                             bg-gradient-to-r
                             from-white/[0.13]
                             to-transparent
+
+                            sm:min-w-6
                           "
                         />
 
                         {/* COUNT */}
+
                         <span
                           className="
                             shrink-0
@@ -731,13 +946,21 @@ export function EventsPage() {
                             border
                             border-white/[0.07]
                             bg-[#121212]
-                            px-3
-                            py-2
+
+                            px-2.5
+                            py-1.5
+
                             font-subtitle
-                            text-[8px]
+
+                            text-[7px]
+
                             uppercase
                             tracking-[0.1em]
                             text-white/30
+
+                            sm:px-3
+                            sm:py-2
+                            sm:text-[8px]
                           "
                         >
                           {
@@ -752,11 +975,17 @@ export function EventsPage() {
                       </div>
                     </Reveal>
 
-                    {/* 3 CARDS */}
+                    {/* =====================================
+                        CARDS
+                    ====================================== */}
+
                     <div
                       className="
                         grid
-                        gap-5
+                        gap-4
+
+                        sm:gap-5
+
                         md:grid-cols-3
                       "
                     >
@@ -786,7 +1015,10 @@ export function EventsPage() {
               },
             )}
 
-          {/* LOAD MORE */}
+          {/* =================================================
+              LOAD MORE
+          ================================================= */}
+
           {!query.isPending &&
             !query.error && (
               <LoadMoreTrigger

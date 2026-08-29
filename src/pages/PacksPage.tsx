@@ -26,13 +26,19 @@ import type {
   PublicPack,
 } from "../types";
 
+/* =========================================================
+   UNIQUE PACKS
+========================================================= */
+
 function uniquePacks(
   items: PublicPack[],
 ) {
   return Array.from(
     new Map(
       items.map(
-        (item) => [
+        (
+          item,
+        ) => [
           item.id,
           item,
         ],
@@ -41,22 +47,40 @@ function uniquePacks(
   );
 }
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export function PacksPage() {
   const {
     t,
-  } = useI18n();
+  } =
+    useI18n();
 
   const [
     filters,
     setFilters,
   ] =
     useState<CatalogFilters>({
-      search: "",
-      eventTypes: [],
-      datePreset: "all",
-      startDate: "",
-      endDate: "",
+      search:
+        "",
+
+      eventTypes:
+        [],
+
+      datePreset:
+        "all",
+
+      startDate:
+        "",
+
+      endDate:
+        "",
     });
+
+  /* =====================================================
+     SEARCH
+  ===================================================== */
 
   const debouncedSearch =
     useDebouncedValue(
@@ -78,36 +102,41 @@ export function PacksPage() {
       ],
     );
 
+  /* =====================================================
+     QUERY
+  ===================================================== */
+
   const query =
     usePacksInfinite(
       queryFilters,
     );
 
-  /*
-   * PACKS
-   *
-   * - on retire les packs visibles
-   *   uniquement dans l'application
-   *
-   * - on retire les doublons
-   *
-   * - on trie du moins cher
-   *   au plus cher
-   */
+  /* =====================================================
+     PACKS
+  ===================================================== */
+
   const packs =
     useMemo(
       () =>
         uniquePacks(
-          query.data?.pages.flatMap(
-            (page) =>
-              page.items,
-          ) ?? [],
+          query.data
+            ?.pages
+            .flatMap(
+              (
+                page,
+              ) =>
+                page.items,
+            ) ??
+            [],
         )
           .filter(
-            (pack) =>
+            (
+              pack,
+            ) =>
               !(
                 pack as PublicPack & {
-                  isVisibleOnlyInApp?: boolean;
+                  isVisibleOnlyInApp?:
+                    boolean;
                 }
               ).isVisibleOnlyInApp,
           )
@@ -143,19 +172,40 @@ export function PacksPage() {
     packs[0] ??
     null;
 
-  const reset = () => {
-    setFilters({
-      search: "",
-      eventTypes: [],
-      datePreset: "all",
-      startDate: "",
-      endDate: "",
-    });
-  };
+  /* =====================================================
+     RESET
+  ===================================================== */
+
+  const reset =
+    () => {
+      setFilters({
+        search:
+          "",
+
+        eventTypes:
+          [],
+
+        datePreset:
+          "all",
+
+        startDate:
+          "",
+
+        endDate:
+          "",
+      });
+    };
+
+  /* =====================================================
+     RENDER
+  ===================================================== */
 
   return (
     <>
-      {/* REMOVE INNER INPUT FOCUS */}
+      {/* =================================================
+          INPUT FOCUS
+      ================================================= */}
+
       <style>{`
         #packs-filters input,
         #packs-filters input:focus,
@@ -170,6 +220,10 @@ export function PacksPage() {
         }
       `}</style>
 
+      {/* =================================================
+          SEO
+      ================================================= */}
+
       <Seo
         title="Choisis ton pack"
         description={t(
@@ -177,21 +231,33 @@ export function PacksPage() {
         )}
         path="/packs"
         image={
-          firstPack?.imageUrl ||
+          firstPack
+            ?.imageUrl ||
           media.crowd
         }
       />
 
-      {/* HERO */}
+      {/* =================================================
+          HERO
+      ================================================= */}
+
       <section
         className="
           relative
-          min-h-[68svh]
+
+          min-h-[52svh]
+
           bg-black
-          pt-20
+
+          sm:min-h-[60svh]
+
+          lg:min-h-[68svh]
         "
       >
-        {/* BACKGROUND */}
+        {/* =================================================
+            BACKGROUND
+        ================================================= */}
+
         <div
           className="
             absolute
@@ -201,7 +267,8 @@ export function PacksPage() {
         >
           <img
             src={
-              firstPack?.imageUrl ||
+              firstPack
+                ?.imageUrl ||
               media.crowd
             }
             alt="B4F packs"
@@ -215,7 +282,8 @@ export function PacksPage() {
             fetchPriority="high"
           />
 
-          {/* LEFT DARK GRADIENT */}
+          {/* LEFT DARK */}
+
           <div
             className="
               absolute
@@ -224,7 +292,8 @@ export function PacksPage() {
             "
           />
 
-          {/* BOTTOM DARK GRADIENT */}
+          {/* BOTTOM DARK */}
+
           <div
             className="
               absolute
@@ -234,46 +303,84 @@ export function PacksPage() {
           />
 
           {/* ORANGE ORB */}
+
           <div
             className="
               party-orb
               party-orb-orange
               absolute
-              -left-28
-              top-24
-              h-72
-              w-72
+
+              -left-24
+              top-16
+
+              h-56
+              w-56
+
               opacity-35
+
+              sm:-left-28
+              sm:top-20
+              sm:h-64
+              sm:w-64
+
+              lg:top-24
+              lg:h-72
+              lg:w-72
             "
           />
 
           {/* PINK ORB */}
+
           <div
             className="
               party-orb
               party-orb-pink
               absolute
-              -right-24
-              bottom-10
-              h-72
-              w-72
+
+              -right-20
+              bottom-8
+
+              h-56
+              w-56
+
               opacity-35
+
+              sm:-right-24
+              sm:bottom-10
+              sm:h-64
+              sm:w-64
+
+              lg:h-72
+              lg:w-72
             "
           />
         </div>
 
-        {/* CONTENT */}
+        {/* =================================================
+            CONTENT
+        ================================================= */}
+
         <div
           className="
             page-shell
             relative
             z-20
             flex
-            min-h-[68svh]
+
+            min-h-[52svh]
+
             items-end
-            pb-10
-            pt-28
-            sm:pb-12
+
+            pb-5
+            pt-16
+
+            sm:min-h-[60svh]
+            sm:pb-8
+            sm:pt-20
+
+            lg:min-h-[68svh]
+            lg:pb-10
+            lg:pt-28
           "
         >
           <Reveal
@@ -281,15 +388,23 @@ export function PacksPage() {
               w-full
             "
           >
-            {/* TITLE */}
+            {/* =============================================
+                TITLE
+            ============================================== */}
+
             <h1
               className="
                 max-w-5xl
                 font-title
-                text-[clamp(3.5rem,10vw,7.6rem)]
+
+                text-[clamp(3.25rem,15vw,5rem)]
+
                 uppercase
                 leading-[0.8]
-                tracking-[-0.06em]
+
+                sm:text-[clamp(4rem,11vw,6rem)]
+
+                lg:text-[clamp(3.5rem,10vw,7.6rem)]
               "
             >
               Choisis
@@ -309,14 +424,23 @@ export function PacksPage() {
               </span>
             </h1>
 
-            {/* FILTERS */}
+            {/* =============================================
+                FILTERS
+            ============================================== */}
+
             <div
               id="packs-filters"
               className="
                 relative
                 z-[100]
-                mt-8
+
+                mt-5
+
                 w-full
+
+                sm:mt-6
+
+                lg:mt-8
               "
             >
               <CatalogFiltersBar
@@ -335,19 +459,30 @@ export function PacksPage() {
         </div>
       </section>
 
-      {/* PACKS */}
+      {/* =================================================
+          PACKS
+      ================================================= */}
+
       <section
         className="
           relative
           z-0
           bg-[#0b0b0b]
-          pb-20
-          pt-10
-          sm:pb-24
-          sm:pt-14
+
+          pb-16
+          pt-4
+
+          sm:pb-20
+          sm:pt-8
+
+          lg:pb-24
+          lg:pt-14
         "
       >
-        {/* BACKGROUND ORANGE */}
+        {/* =================================================
+            BACKGROUND ORANGE
+        ================================================= */}
+
         <div
           className="
             pointer-events-none
@@ -362,7 +497,10 @@ export function PacksPage() {
           "
         />
 
-        {/* BACKGROUND PINK */}
+        {/* =================================================
+            BACKGROUND PINK
+        ================================================= */}
+
         <div
           className="
             pointer-events-none
@@ -383,17 +521,25 @@ export function PacksPage() {
             relative
           "
         >
-          {/* LOADING */}
+          {/* =================================================
+              LOADING
+          ================================================= */}
+
           {query.isPending && (
             <div
               className="
                 grid
-                gap-5
+
+                gap-4
+
+                sm:gap-5
+
                 md:grid-cols-3
               "
             >
               {Array.from({
-                length: 6,
+                length:
+                  6,
               }).map(
                 (
                   _,
@@ -409,16 +555,26 @@ export function PacksPage() {
             </div>
           )}
 
-          {/* ERROR */}
+          {/* =================================================
+              ERROR
+          ================================================= */}
+
           {query.error && (
             <div
               className="
-                rounded-[26px]
+                rounded-[22px]
                 border
                 border-white/[0.07]
                 bg-[#111]
-                p-10
+
+                p-7
+
                 text-center
+
+                sm:rounded-[26px]
+                sm:p-9
+
+                lg:p-10
               "
             >
               <h3
@@ -433,10 +589,13 @@ export function PacksPage() {
 
               <p
                 className="
-                  mt-3
+                  mt-2
                   font-body
-                  text-sm
+                  text-[13px]
                   text-white/40
+
+                  sm:mt-3
+                  sm:text-sm
                 "
               >
                 {query.error instanceof
@@ -452,7 +611,9 @@ export function PacksPage() {
                 }
                 className="
                   secondary-button
-                  mt-6
+                  mt-5
+
+                  sm:mt-6
                 "
               >
                 {t(
@@ -462,7 +623,10 @@ export function PacksPage() {
             </div>
           )}
 
-          {/* EMPTY */}
+          {/* =================================================
+              EMPTY
+          ================================================= */}
+
           {!query.isPending &&
             !query.error &&
             packs.length ===
@@ -470,15 +634,27 @@ export function PacksPage() {
               <div
                 className="
                   grid
-                  min-h-[380px]
+
+                  min-h-[300px]
+
                   place-items-center
-                  rounded-[28px]
+                  rounded-[22px]
                   border
                   border-dashed
                   border-white/[0.12]
                   bg-[#101010]
-                  p-10
+
+                  p-6
+
                   text-center
+
+                  sm:min-h-[340px]
+                  sm:rounded-[26px]
+                  sm:p-8
+
+                  lg:min-h-[380px]
+                  lg:rounded-[28px]
+                  lg:p-10
                 "
               >
                 <div>
@@ -486,27 +662,45 @@ export function PacksPage() {
                     className="
                       mx-auto
                       grid
-                      h-16
-                      w-16
+
+                      h-14
+                      w-14
+
                       place-items-center
-                      rounded-[20px]
+
+                      rounded-[17px]
+
                       border
                       border-white/[0.08]
                       bg-white/[0.035]
+
+                      sm:h-16
+                      sm:w-16
+                      sm:rounded-[20px]
                     "
                   >
                     <Package
-                      size={30}
-                      className="text-white/20"
+                      size={27}
+                      className="
+                        text-white/20
+
+                        sm:h-[30px]
+                        sm:w-[30px]
+                      "
                     />
                   </span>
 
                   <h3
                     className="
-                      mt-5
+                      mt-4
                       font-title
-                      text-2xl
+
+                      text-xl
+
                       uppercase
+
+                      sm:mt-5
+                      sm:text-2xl
                     "
                   >
                     {t(
@@ -516,10 +710,15 @@ export function PacksPage() {
 
                   <p
                     className="
-                      mt-3
+                      mt-2
                       font-body
-                      text-sm
+
+                      text-[13px]
+
                       text-white/40
+
+                      sm:mt-3
+                      sm:text-sm
                     "
                   >
                     {t(
@@ -534,7 +733,10 @@ export function PacksPage() {
                     }
                     className="
                       secondary-button
-                      mt-6
+
+                      mt-5
+
+                      sm:mt-6
                     "
                   >
                     {t(
@@ -545,7 +747,10 @@ export function PacksPage() {
               </div>
             )}
 
-          {/* PACKS */}
+          {/* =================================================
+              PACKS GRID
+          ================================================= */}
+
           {!query.isPending &&
             !query.error &&
             packs.length >
@@ -553,7 +758,11 @@ export function PacksPage() {
               <div
                 className="
                   grid
-                  gap-5
+
+                  gap-4
+
+                  sm:gap-5
+
                   md:grid-cols-3
                 "
               >
@@ -580,7 +789,10 @@ export function PacksPage() {
               </div>
             )}
 
-          {/* LOAD MORE */}
+          {/* =================================================
+              LOAD MORE
+          ================================================= */}
+
           {!query.isPending &&
             !query.error &&
             Boolean(

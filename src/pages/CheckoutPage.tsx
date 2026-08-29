@@ -1,6 +1,8 @@
 import {
+  Armchair,
   ArrowLeft,
   ArrowRight,
+  BadgePlus,
   CalendarDays,
   CheckCircle2,
   Minus,
@@ -44,7 +46,22 @@ import {
 import { useOrders } from "../providers/OrdersProvider";
 import { createGuestCheckout } from "../services/checkout";
 
-import type { GuestCustomer } from "../types";
+import type {
+  GuestCustomer,
+  SelectedExtra,
+} from "../types";
+
+/* =========================================================
+   FRAIS
+========================================================= */
+
+const SERVICE_FEE_RATE = 0.025;
+const SERVICE_FLAT_FEE = 1.49;
+const SERVICE_FEE_THRESHOLD = 60;
+
+/* =========================================================
+   CUSTOMER
+========================================================= */
 
 const initialCustomer: GuestCustomer = {
   name: "",
@@ -52,6 +69,10 @@ const initialCustomer: GuestCustomer = {
   phone: "",
   email: "",
 };
+
+/* =========================================================
+   PHONE
+========================================================= */
 
 const phoneStyle = {
   width: "100%",
@@ -108,6 +129,10 @@ const phoneStyle = {
     "44px",
 } as CSSProperties;
 
+/* =========================================================
+   GENERIC HELPERS
+========================================================= */
+
 type LooseRecord =
   Record<string, unknown>;
 
@@ -124,11 +149,95 @@ function getRecord(
   return null;
 }
 
+function roundMoney(
+  value: number,
+) {
+  if (
+    !Number.isFinite(value)
+  ) {
+    return 0;
+  }
+
+  return (
+    Math.round(
+      value * 100,
+    ) / 100
+  );
+}
+
+function getStringField(
+  record: LooseRecord,
+  fields: string[],
+): string | null {
+  for (
+    const field
+    of fields
+  ) {
+    const value =
+      record[field];
+
+    if (
+      typeof value ===
+        "string" &&
+      value.trim()
+    ) {
+      return value.trim();
+    }
+
+    if (
+      typeof value ===
+        "number" &&
+      Number.isFinite(value)
+    ) {
+      return String(value);
+    }
+  }
+
+  return null;
+}
+
+/* =========================================================
+   FRAIS
+========================================================= */
+
+function calculateServiceFee(
+  amount: number,
+) {
+  const safeAmount =
+    Math.max(
+      0,
+      Number(amount) || 0,
+    );
+
+  if (
+    safeAmount <= 0
+  ) {
+    return 0;
+  }
+
+  if (
+    safeAmount <=
+    SERVICE_FEE_THRESHOLD
+  ) {
+    return SERVICE_FLAT_FEE;
+  }
+
+  return roundMoney(
+    safeAmount *
+      SERVICE_FEE_RATE,
+  );
+}
+
+/* =========================================================
+   IMAGE
+========================================================= */
+
 function getImageFromValue(
   value: unknown,
 ): string | null {
   if (
-    typeof value === "string" &&
+    typeof value ===
+      "string" &&
     value.trim()
   ) {
     return value;
@@ -141,7 +250,7 @@ function getImageFromValue(
     return null;
   }
 
-  const possibleValues = [
+  const values = [
     record.url,
     record.uri,
     record.imageUrl,
@@ -151,7 +260,7 @@ function getImageFromValue(
 
   for (
     const possibleValue
-    of possibleValues
+    of values
   ) {
     if (
       typeof possibleValue ===
@@ -212,25 +321,25 @@ function getCartItemImage(
     const selectedEvent
     of selectedEvents
   ) {
-    const event =
+    const eventRecord =
       getRecord(
         selectedEvent,
       );
 
-    if (!event) {
+    if (!eventRecord) {
       continue;
     }
 
     const eventCandidates = [
-      event.imageUrl,
-      event.image_url,
-      event.image,
-      event.eventImage,
-      event.event_image,
-      event.coverUrl,
-      event.cover_url,
-      event.thumbnail,
-      event.thumbnailUrl,
+      eventRecord.imageUrl,
+      eventRecord.image_url,
+      eventRecord.image,
+      eventRecord.eventImage,
+      eventRecord.event_image,
+      eventRecord.coverUrl,
+      eventRecord.cover_url,
+      eventRecord.thumbnail,
+      eventRecord.thumbnailUrl,
     ];
 
     for (
@@ -251,36 +360,9 @@ function getCartItemImage(
   return null;
 }
 
-function getStringField(
-  record: LooseRecord,
-  fields: string[],
-): string | null {
-  for (
-    const field
-    of fields
-  ) {
-    const value =
-      record[field];
-
-    if (
-      typeof value ===
-        "string" &&
-      value.trim()
-    ) {
-      return value.trim();
-    }
-
-    if (
-      typeof value ===
-        "number" &&
-      Number.isFinite(value)
-    ) {
-      return String(value);
-    }
-  }
-
-  return null;
-}
+/* =========================================================
+   DATE
+========================================================= */
 
 function getDateFromRecord(
   record: LooseRecord,
@@ -358,7 +440,9 @@ function getCartItemDates(
       : [];
 
   selectedEvents.forEach(
-    (selectedEvent) => {
+    (
+      selectedEvent,
+    ) => {
       const eventRecord =
         getRecord(
           selectedEvent,
@@ -425,8 +509,15 @@ function formatEventDate(
     },
   )
     .format(date)
-    .replace(/\./g, "");
+    .replace(
+      /\./g,
+      "",
+    );
 }
+
+/* =========================================================
+   EVENT ID
+========================================================= */
 
 function getEventIdentity(
   value: unknown,
@@ -456,11 +547,70 @@ function getEventIdentity(
   );
 }
 
+function getEventIdFromValue(
+  value: unknown,
+): number | null {
+  const record =
+    getRecord(value);
+
+  if (!record) {
+    return null;
+  }
+
+  const direct =
+    record.eventId ??
+    record.event_id;
+
+  if (
+    direct !== undefined &&
+    direct !== null
+  ) {
+    const id =
+      Number(direct);
+
+    if (
+      Number.isFinite(id)
+    ) {
+      return id;
+    }
+  }
+
+  const nestedEvent =
+    getRecord(
+      record.event,
+    );
+
+  if (nestedEvent) {
+    const nestedId =
+      nestedEvent.eventId ??
+      nestedEvent.event_id ??
+      nestedEvent.id;
+
+    const id =
+      Number(
+        nestedId,
+      );
+
+    if (
+      Number.isFinite(id)
+    ) {
+      return id;
+    }
+  }
+
+  return null;
+}
+
+/* =========================================================
+   QUANTITY CONTROL
+========================================================= */
+
 type QuantityControlProps = {
   value: number;
   onMinus: () => void;
   onPlus: () => void;
   disableMinus?: boolean;
+  disablePlus?: boolean;
   label?: string;
 };
 
@@ -469,6 +619,7 @@ function QuantityControl({
   onMinus,
   onPlus,
   disableMinus = false,
+  disablePlus = false,
   label,
 }: QuantityControlProps) {
   return (
@@ -521,21 +672,17 @@ function QuantityControl({
           outline-none
           ring-0
           transition
+
           hover:bg-white/[0.07]
           hover:text-white
+
           focus:outline-none
           focus:ring-0
-          focus-visible:outline-none
-          focus-visible:ring-0
+
           disabled:cursor-not-allowed
-          disabled:text-white/10
+          disabled:opacity-20
           disabled:hover:bg-transparent
         "
-        aria-label={
-          value === 1
-            ? "Supprimer le billet"
-            : "Retirer un billet"
-        }
       >
         <Minus
           size={12}
@@ -560,6 +707,9 @@ function QuantityControl({
         onClick={
           onPlus
         }
+        disabled={
+          disablePlus
+        }
         className="
           grid
           h-6
@@ -572,14 +722,17 @@ function QuantityControl({
           outline-none
           ring-0
           transition
+
           hover:bg-secondary
           hover:text-black
+
           focus:outline-none
           focus:ring-0
-          focus-visible:outline-none
-          focus-visible:ring-0
+
+          disabled:cursor-not-allowed
+          disabled:bg-white/[0.02]
+          disabled:text-white/15
         "
-        aria-label="Ajouter un billet"
       >
         <Plus
           size={12}
@@ -589,6 +742,10 @@ function QuantityControl({
     </div>
   );
 }
+
+/* =========================================================
+   CHECKOUT
+========================================================= */
 
 export function CheckoutPage() {
   const navigate =
@@ -600,24 +757,25 @@ export function CheckoutPage() {
   const {
     user,
     openAuth,
-  } = useAuth();
+  } =
+    useAuth();
 
   const {
     items,
-    subtotal,
-    serviceFee,
-    total,
     clear,
-  } = useCart();
+  } =
+    useCart();
 
   const {
     saveOrder,
-  } = useOrders();
+  } =
+    useOrders();
 
   const {
     t,
     locale,
-  } = useI18n();
+  } =
+    useI18n();
 
   const [
     customer,
@@ -645,11 +803,6 @@ export function CheckoutPage() {
   ] =
     useState("");
 
-  /*
-   * Passe à true après
-   * la première tentative
-   * de paiement.
-   */
   const [
     showValidation,
     setShowValidation,
@@ -664,11 +817,21 @@ export function CheckoutPage() {
       items,
     );
 
+  /* =====================================================
+     SYNC CART
+  ===================================================== */
+
   useEffect(() => {
     setCheckoutItems(
       items,
     );
-  }, [items]);
+  }, [
+    items,
+  ]);
+
+  /* =====================================================
+     USER
+  ===================================================== */
 
   useEffect(() => {
     if (!user) {
@@ -676,7 +839,9 @@ export function CheckoutPage() {
     }
 
     setCustomer(
-      (current) => ({
+      (
+        current,
+      ) => ({
         ...current,
 
         name:
@@ -695,84 +860,295 @@ export function CheckoutPage() {
     );
 
     setError("");
-  }, [user]);
+  }, [
+    user,
+  ]);
+
+  /* =====================================================
+     VALIDATION
+  ===================================================== */
 
   const phoneValue =
     customer.phone
       ? `${customer.phoneCode}${customer.phone}`
       : "";
 
-  /*
-   * VALIDATION NOM
-   */
   const nameValid =
     customer.name
       .trim()
-      .length >= 2;
+      .length >=
+    2;
 
-  /*
-   * VALIDATION TÉLÉPHONE
-   */
   const phoneValid =
     customer.phone
       .replace(
         /\D/g,
         "",
       )
-      .length >= 6;
+      .length >=
+    6;
 
-  /*
-   * VALIDATION EMAIL
-   */
   const emailValid =
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
       customer.email.trim(),
     );
 
-  /*
-   * CLIENT INVITÉ PRÊT
-   */
-  const guestReady =
-    nameValid &&
-    phoneValid &&
-    emailValid;
+  /* =====================================================
+     EVENT TICKET COUNT
+  ===================================================== */
+
+  const getEventTicketCount = (
+    source:
+      typeof checkoutItems,
+
+    eventId:
+      number,
+  ) => {
+    return source.reduce(
+      (
+        total,
+        item,
+      ) => {
+        if (
+          item.kind !==
+          "pack"
+        ) {
+          if (
+            Number(
+              item.eventId,
+            ) ===
+            Number(
+              eventId,
+            )
+          ) {
+            return (
+              total +
+              Math.max(
+                0,
+                item.quantity,
+              )
+            );
+          }
+
+          return total;
+        }
+
+        const containsEvent =
+          item.selectedEvents.some(
+            (
+              selectedEvent,
+            ) =>
+              getEventIdFromValue(
+                selectedEvent,
+              ) ===
+              Number(
+                eventId,
+              ),
+          );
+
+        if (
+          !containsEvent
+        ) {
+          return total;
+        }
+
+        return (
+          total +
+          Math.max(
+            0,
+            item.maleQuantity,
+          ) +
+          Math.max(
+            0,
+            item.femaleQuantity,
+          )
+        );
+      },
+      0,
+    );
+  };
+
+  /* =====================================================
+     CLAMP EXTRAS
+  ===================================================== */
+
+  const clampAllExtras = (
+    source:
+      typeof checkoutItems,
+  ): typeof checkoutItems => {
+    return source.map(
+      (
+        item,
+      ) => ({
+        ...item,
+
+        extras:
+          (
+            item.extras ??
+            []
+          ).map(
+            (
+              extra,
+            ) => {
+              const ticketCount =
+                getEventTicketCount(
+                  source,
+
+                  Number(
+                    extra.eventId,
+                  ),
+                );
+
+              if (
+                extra.kind ===
+                "table"
+              ) {
+                return {
+                  ...extra,
+
+                  quantity:
+                    ticketCount >
+                    0
+                      ? Math.min(
+                          Math.max(
+                            extra.quantity,
+                            0,
+                          ),
+                          1,
+                        )
+                      : 0,
+                };
+              }
+
+              return {
+                ...extra,
+
+                quantity:
+                  Math.min(
+                    Math.max(
+                      extra.quantity,
+                      0,
+                    ),
+
+                    ticketCount,
+                  ),
+              };
+            },
+          ),
+      }),
+    ) as typeof source;
+  };
+
+  /* =====================================================
+     MERGE EXTRAS
+  ===================================================== */
+
+  const mergeExtras = (
+    currentExtras:
+      SelectedExtra[],
+
+    incomingExtras:
+      SelectedExtra[],
+  ) => {
+    const map =
+      new Map<
+        string,
+        SelectedExtra
+      >();
+
+    [
+      ...currentExtras,
+      ...incomingExtras,
+    ].forEach(
+      (
+        extra,
+      ) => {
+        const current =
+          map.get(
+            extra.key,
+          );
+
+        if (!current) {
+          map.set(
+            extra.key,
+            extra,
+          );
+
+          return;
+        }
+
+        map.set(
+          extra.key,
+          {
+            ...current,
+
+            quantity:
+              Math.max(
+                current.quantity,
+                extra.quantity,
+              ),
+          },
+        );
+      },
+    );
+
+    return Array.from(
+      map.values(),
+    );
+  };
+
+  /* =====================================================
+     TOTALS
+  ===================================================== */
 
   const checkoutSubtotal =
     useMemo(
       () =>
-        checkoutItems.reduce(
-          (
-            sum,
-            item,
-          ) =>
-            sum +
-            getCartItemTotal(
+        roundMoney(
+          checkoutItems.reduce(
+            (
+              sum,
               item,
-            ),
-          0,
+            ) =>
+              sum +
+              getCartItemTotal(
+                item,
+              ),
+            0,
+          ),
         ),
       [
         checkoutItems,
       ],
     );
 
-  const checkoutTotal =
+  const checkoutServiceFee =
     useMemo(
       () =>
-        Math.max(
-          0,
-          total +
-            (
-              checkoutSubtotal -
-              subtotal
-            ),
+        calculateServiceFee(
+          checkoutSubtotal,
         ),
       [
         checkoutSubtotal,
-        subtotal,
-        total,
       ],
     );
+
+  const checkoutTotal =
+    useMemo(
+      () =>
+        roundMoney(
+          checkoutSubtotal +
+            checkoutServiceFee,
+        ),
+      [
+        checkoutSubtotal,
+        checkoutServiceFee,
+      ],
+    );
+
+  /* =====================================================
+     EVENING COUNT
+  ===================================================== */
 
   const eveningCount =
     useMemo(
@@ -791,7 +1167,8 @@ export function CheckoutPage() {
             ) {
               if (
                 item.selectedEvents
-                  .length === 0
+                  .length ===
+                0
               ) {
                 events.add(
                   `pack-${item.key}`,
@@ -808,6 +1185,7 @@ export function CheckoutPage() {
                   events.add(
                     getEventIdentity(
                       selectedEvent,
+
                       `${item.key}-${itemIndex}-${eventIndex}`,
                     ),
                   );
@@ -817,27 +1195,10 @@ export function CheckoutPage() {
               return;
             }
 
-            const itemRecord =
-              getRecord(
-                item,
-              );
-
-            const identity =
-              itemRecord
-                ? getStringField(
-                    itemRecord,
-                    [
-                      "eventId",
-                      "event_id",
-                      "id",
-                    ],
-                  )
-                : null;
-
             events.add(
-              identity ||
-                item.eventName ||
-                item.key,
+              String(
+                item.eventId,
+              ),
             );
           },
         );
@@ -849,29 +1210,28 @@ export function CheckoutPage() {
       ],
     );
 
-  /*
-   * LE BOUTON RESTE CLIQUABLE
-   * MÊME SI LE FORMULAIRE
-   * N'EST PAS COMPLET.
-   *
-   * Cela permet d'afficher
-   * les champs manquants en rouge.
-   */
   const canSubmit =
     checkoutItems.length >
       0 &&
     !loading;
 
+  /* =====================================================
+     CUSTOMER
+  ===================================================== */
+
   const update = (
     field:
       keyof GuestCustomer,
-    value: string,
+
+    value:
+      string,
   ) => {
     setCustomer(
       (
         current,
       ) => ({
         ...current,
+
         [field]:
           value,
       }),
@@ -882,6 +1242,7 @@ export function CheckoutPage() {
 
   const handlePhoneChange = (
     value: string,
+
     meta: {
       country:
         ParsedCountry;
@@ -927,152 +1288,376 @@ export function CheckoutPage() {
     setError("");
   };
 
-  /*
-   * TICKET SIMPLE
-   *
-   * 1 -> 0
-   * = suppression
-   */
+  /* =====================================================
+     EVENT QUANTITY
+  ===================================================== */
+
   const updateEventQuantity = (
-    key: string,
-    delta: number,
+    key:
+      string,
+
+    delta:
+      number,
   ) => {
     setCheckoutItems(
-      (current) =>
-        current.flatMap(
-          (item) => {
-            if (
-              item.key !== key ||
-              item.kind ===
-                "pack"
-            ) {
-              return [
+      (
+        current,
+      ) => {
+        const target =
+          current.find(
+            (
+              item,
+            ) =>
+              item.key ===
+                key &&
+              item.kind !==
+                "pack",
+          );
+
+        if (
+          !target ||
+          target.kind ===
+            "pack"
+        ) {
+          return current;
+        }
+
+        const maximum =
+          target.maximumAvailable ??
+          Number.POSITIVE_INFINITY;
+
+        const nextQuantity =
+          Math.max(
+            0,
+
+            Math.min(
+              target.quantity +
+                delta,
+
+              maximum,
+            ),
+          );
+
+        if (
+          nextQuantity >
+          0
+        ) {
+          const next =
+            current.map(
+              (
                 item,
-              ];
-            }
+              ) => {
+                if (
+                  item.key !==
+                    key ||
+                  item.kind ===
+                    "pack"
+                ) {
+                  return item;
+                }
 
-            const nextQuantity =
-              item.quantity +
-              delta;
+                return {
+                  ...item,
 
-            if (
-              nextQuantity <=
-              0
-            ) {
-              return [];
-            }
-
-            return [
-              {
-                ...item,
-
-                quantity:
-                  nextQuantity,
+                  quantity:
+                    nextQuantity,
+                };
               },
-            ];
-          },
-        ),
+            ) as typeof current;
+
+          return clampAllExtras(
+            next,
+          );
+        }
+
+        const eventId =
+          target.eventId;
+
+        const extrasToTransfer =
+          target.extras ??
+          [];
+
+        let next =
+          current.filter(
+            (
+              item,
+            ) =>
+              item.key !==
+              key,
+          ) as typeof current;
+
+        const receiverIndex =
+          next.findIndex(
+            (
+              item,
+            ) =>
+              item.kind !==
+                "pack" &&
+              Number(
+                item.eventId,
+              ) ===
+                Number(
+                  eventId,
+                ),
+          );
+
+        if (
+          receiverIndex >=
+            0 &&
+          extrasToTransfer.length >
+            0
+        ) {
+          next =
+            next.map(
+              (
+                item,
+                index,
+              ) => {
+                if (
+                  index !==
+                  receiverIndex
+                ) {
+                  return item;
+                }
+
+                return {
+                  ...item,
+
+                  extras:
+                    mergeExtras(
+                      item.extras ??
+                        [],
+
+                      extrasToTransfer,
+                    ),
+                };
+              },
+            ) as typeof current;
+        }
+
+        return clampAllExtras(
+          next,
+        );
+      },
     );
 
     setError("");
   };
 
-  /*
-   * PACK
-   *
-   * Si Homme + Femme = 0
-   * => suppression du pack.
-   */
+  /* =====================================================
+     PACK QUANTITY
+  ===================================================== */
+
   const updatePackQuantity = (
-    key: string,
+    key:
+      string,
 
     gender:
       | "man"
       | "woman",
 
-    delta: number,
+    delta:
+      number,
   ) => {
     setCheckoutItems(
-      (current) =>
-        current.flatMap(
-          (item) => {
-            if (
-              item.key !== key ||
-              item.kind !==
-                "pack"
-            ) {
+      (
+        current,
+      ) => {
+        const next =
+          current.flatMap(
+            (
+              item,
+            ) => {
+              if (
+                item.key !==
+                  key ||
+                item.kind !==
+                  "pack"
+              ) {
+                return [
+                  item,
+                ];
+              }
+
+              const nextMen =
+                gender ===
+                "man"
+                  ? Math.max(
+                      0,
+
+                      item.maleQuantity +
+                        delta,
+                    )
+                  : item.maleQuantity;
+
+              const nextWomen =
+                gender ===
+                "woman"
+                  ? Math.max(
+                      0,
+
+                      item.femaleQuantity +
+                        delta,
+                    )
+                  : item.femaleQuantity;
+
+              if (
+                nextMen +
+                  nextWomen ===
+                0
+              ) {
+                return [];
+              }
+
               return [
-                item,
+                {
+                  ...item,
+
+                  maleQuantity:
+                    nextMen,
+
+                  femaleQuantity:
+                    nextWomen,
+                },
               ];
-            }
+            },
+          ) as typeof current;
 
-            const nextMen =
-              gender ===
-              "man"
-                ? Math.max(
-                    0,
-                    item.maleQuantity +
-                      delta,
-                  )
-                : item.maleQuantity;
-
-            const nextWomen =
-              gender ===
-              "woman"
-                ? Math.max(
-                    0,
-                    item.femaleQuantity +
-                      delta,
-                  )
-                : item.femaleQuantity;
-
-            if (
-              nextMen +
-                nextWomen ===
-              0
-            ) {
-              return [];
-            }
-
-            return [
-              {
-                ...item,
-
-                maleQuantity:
-                  nextMen,
-
-                femaleQuantity:
-                  nextWomen,
-              },
-            ];
-          },
-        ),
+        return clampAllExtras(
+          next,
+        );
+      },
     );
 
     setError("");
   };
 
-  /*
-   * PAIEMENT
-   */
+  /* =====================================================
+     EXTRA QUANTITY
+  ===================================================== */
+
+  const updateExtraQuantity = (
+    extraKey:
+      string,
+
+    delta:
+      number,
+  ) => {
+    setCheckoutItems(
+      (
+        current,
+      ) => {
+        let targetExtra:
+          SelectedExtra |
+          null =
+          null;
+
+        for (
+          const item
+          of current
+        ) {
+          const extra =
+            (
+              item.extras ??
+              []
+            ).find(
+              (
+                currentExtra,
+              ) =>
+                currentExtra.key ===
+                extraKey,
+            );
+
+          if (extra) {
+            targetExtra =
+              extra;
+
+            break;
+          }
+        }
+
+        if (
+          !targetExtra
+        ) {
+          return current;
+        }
+
+        const ticketCount =
+          getEventTicketCount(
+            current,
+
+            Number(
+              targetExtra.eventId,
+            ),
+          );
+
+        const maximum =
+          targetExtra.kind ===
+          "table"
+            ? ticketCount >
+              0
+              ? 1
+              : 0
+            : ticketCount;
+
+        const nextQuantity =
+          Math.max(
+            0,
+
+            Math.min(
+              targetExtra.quantity +
+                delta,
+
+              maximum,
+            ),
+          );
+
+        return current.map(
+          (
+            item,
+          ) => ({
+            ...item,
+
+            extras:
+              (
+                item.extras ??
+                  []
+              ).map(
+                (
+                  extra,
+                ) =>
+                  extra.key ===
+                  extraKey
+                    ? {
+                        ...extra,
+
+                        quantity:
+                          nextQuantity,
+                      }
+                    : extra,
+              ),
+          }),
+        ) as typeof current;
+      },
+    );
+
+    setError("");
+  };
+
+  /* =====================================================
+     SUBMIT
+  ===================================================== */
+
   const submit = async (
     event:
       FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
 
-    /*
-     * À PARTIR DE CE CLIC,
-     * ON MONTRE LES ERREURS
-     * DES CHAMPS EN ROUGE.
-     */
     setShowValidation(
       true,
     );
 
-    /*
-     * VALIDATION CLIENT INVITÉ
-     */
     if (!user) {
       if (
         !nameValid ||
@@ -1087,10 +1672,9 @@ export function CheckoutPage() {
       }
     }
 
-    /*
-     * VALIDATION CGV
-     */
-    if (!accepted) {
+    if (
+      !accepted
+    ) {
       setError(
         "Tu dois accepter les conditions avant de continuer.",
       );
@@ -1098,9 +1682,6 @@ export function CheckoutPage() {
       return;
     }
 
-    /*
-     * SÉCURITÉ
-     */
     if (
       checkoutItems.length ===
       0
@@ -1123,8 +1704,7 @@ export function CheckoutPage() {
 
               name:
                 customer.name ||
-                user
-                  .user_metadata
+                user.user_metadata
                   ?.full_name ||
                 user.email
                   ?.split("@")[0] ||
@@ -1136,6 +1716,27 @@ export function CheckoutPage() {
                 "",
             }
           : customer;
+
+      const cleanCheckoutItems =
+        checkoutItems.map(
+          (
+            item,
+          ) => ({
+            ...item,
+
+            extras:
+              (
+                item.extras ??
+                  []
+              ).filter(
+                (
+                  extra,
+                ) =>
+                  extra.quantity >
+                  0,
+              ),
+          }),
+        ) as typeof checkoutItems;
 
       const result =
         await createGuestCheckout({
@@ -1154,7 +1755,7 @@ export function CheckoutPage() {
           },
 
           items:
-            checkoutItems,
+            cleanCheckoutItems,
         });
 
       if (
@@ -1175,24 +1776,26 @@ export function CheckoutPage() {
       clear();
 
       const params =
-  new URLSearchParams({
-    new: "1",
-  });
+        new URLSearchParams({
+          new:
+            "1",
+        });
 
-if (
-  result.order
-    .accessToken
-) {
-  params.set(
-    "token",
-    result.order
-      .accessToken,
-  );
-}
+      if (
+        result.order
+          .accessToken
+      ) {
+        params.set(
+          "token",
 
-navigate(
-  `/commande/${result.order.id}?${params.toString()}`,
-);
+          result.order
+            .accessToken,
+        );
+      }
+
+      navigate(
+        `/commande/${result.order.id}?${params.toString()}`,
+      );
     } catch (
       checkoutError:
         unknown
@@ -1212,15 +1815,28 @@ navigate(
     }
   };
 
-  /*
-   * PANIER VIDE
-   */
+  /* =====================================================
+     EMPTY CART
+  ===================================================== */
+
   if (
     checkoutItems.length ===
     0
   ) {
     return (
-      <div className="page-shell pb-24 pt-36 text-center">
+      <div
+        className="
+          page-shell
+          pb-16
+          pt-20
+          text-center
+
+          sm:pb-20
+          sm:pt-24
+
+          lg:pt-32
+        "
+      >
         <Seo
           title={t(
             "cart.empty",
@@ -1256,8 +1872,19 @@ navigate(
     );
   }
 
+  /* =====================================================
+     PAGE
+  ===================================================== */
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#090909]">
+    <div
+      className="
+        relative
+        min-h-screen
+        overflow-hidden
+        bg-[#090909]
+      "
+    >
       <Seo
         title={t(
           "checkout.title",
@@ -1269,85 +1896,221 @@ navigate(
         noIndex
       />
 
-      <div className="pointer-events-none absolute -left-64 top-0 h-[520px] w-[520px] rounded-full bg-secondary/[0.04] blur-[160px]" />
+      <div
+        className="
+          pointer-events-none
+          absolute
+          -left-64
+          top-0
+          h-[520px]
+          w-[520px]
+          rounded-full
+          bg-secondary/[0.04]
+          blur-[160px]
+        "
+      />
 
-      <div className="pointer-events-none absolute -right-64 top-[380px] h-[500px] w-[500px] rounded-full bg-primary/[0.035] blur-[160px]" />
+      <div
+        className="
+          pointer-events-none
+          absolute
+          -right-64
+          top-[380px]
+          h-[500px]
+          w-[500px]
+          rounded-full
+          bg-primary/[0.035]
+          blur-[160px]
+        "
+      />
 
-      <div className="page-shell relative pb-16 pt-28 sm:pb-20 sm:pt-32">
+      {/* =================================================
+          ESPACEMENT RESPONSIVE CORRIGÉ
+      ================================================= */}
 
+      <div
+        className="
+          page-shell
+          relative
+          pb-12
+          pt-20
+
+          sm:pb-16
+          sm:pt-24
+
+          lg:pb-20
+          lg:pt-28
+        "
+      >
         {/* HEADER */}
-        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <Link
-              to="/"
+
+        <div>
+          <Link
+            to="/"
+            className="
+              group
+              inline-flex
+              h-9
+              items-center
+              gap-2
+              rounded-full
+              border
+              border-white/[0.08]
+              bg-[#151515]
+              px-3.5
+              font-subtitle
+              text-[9px]
+              uppercase
+              tracking-[0.13em]
+              text-white/40
+              transition
+
+              hover:border-white/[0.15]
+              hover:text-white
+            "
+          >
+            <ArrowLeft
+              size={13}
               className="
-                group
-                inline-flex
-                h-9
-                items-center
-                gap-2
-                rounded-full
-                border
-                border-white/[0.08]
-                bg-[#151515]
-                px-3.5
-                font-subtitle
-                text-[9px]
-                uppercase
-                tracking-[0.13em]
-                text-white/40
-                transition
-                hover:border-white/[0.15]
-                hover:text-white
+                transition-transform
+                duration-200
+                group-hover:-translate-x-0.5
               "
-            >
-              <ArrowLeft
-                size={13}
-                className="transition-transform duration-200 group-hover:-translate-x-0.5"
-              />
+            />
 
-              Retour
-            </Link>
+            Retour
+          </Link>
 
-            <h1 className="mt-4 font-title text-4xl uppercase leading-[0.87] tracking-[-0.04em] sm:text-5xl">
-              Ta commande.
-            </h1>
+          <h1
+            className="
+              mt-3
+              font-title
+              text-4xl
+              uppercase
+              leading-[0.87]
 
-            <p className="mt-1 font-body text-sm leading-6 text-white/35">
-              Vérifie tes billets avant de passer au paiement.
-            </p>
-          </div>
+              sm:mt-4
+              sm:text-5xl
+            "
+          >
+            Ta commande.
+          </h1>
+
+          <p
+            className="
+              mt-1
+              font-body
+              text-sm
+              leading-6
+              text-white/35
+            "
+          >
+            Vérifie tes billets, tes options et tes tables avant de payer.
+          </p>
         </div>
+
+        {/* =================================================
+            FORM
+        ================================================= */}
 
         <form
           onSubmit={
             submit
           }
           noValidate
-          className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_430px] lg:items-start"
-        >
+          className="
+            mt-4
+            grid
+            gap-4
 
+            sm:mt-5
+            sm:gap-5
+
+            lg:mt-6
+            lg:grid-cols-[minmax(0,1fr)_430px]
+            lg:items-start
+            lg:gap-6
+          "
+        >
           {/* CUSTOMER */}
-          <section className="overflow-visible rounded-[28px] border border-white/[0.08] bg-[#111]">
+
+          <section
+            className="
+              overflow-visible
+              rounded-[28px]
+              border
+              border-white/[0.08]
+              bg-[#111]
+            "
+          >
             {!user ? (
               <div className="p-5 sm:p-7">
-
                 {/* ACCOUNT */}
-                <div className="rounded-[20px] border border-secondary/20 bg-secondary/[0.06] p-4">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] bg-secondary/10 text-secondary">
+
+                <div
+                  className="
+                    rounded-[20px]
+                    border
+                    border-secondary/20
+                    bg-secondary/[0.06]
+                    p-4
+                  "
+                >
+                  <div
+                    className="
+                      flex
+                      flex-col
+                      gap-4
+
+                      sm:flex-row
+                      sm:items-center
+                      sm:justify-between
+                    "
+                  >
+                    <div
+                      className="
+                        flex
+                        items-center
+                        gap-3
+                      "
+                    >
+                      <span
+                        className="
+                          grid
+                          h-11
+                          w-11
+                          shrink-0
+                          place-items-center
+                          rounded-[14px]
+                          bg-secondary/10
+                          text-secondary
+                        "
+                      >
                         <UserRound
                           size={20}
                         />
                       </span>
 
                       <div>
-                        <strong className="block font-subtitle text-sm">
+                        <strong
+                          className="
+                            block
+                            font-subtitle
+                            text-sm
+                          "
+                        >
                           Créer un compte B4F
                         </strong>
 
-                        <span className="mt-1 block font-body text-[11px] text-white/30">
+                        <span
+                          className="
+                            mt-1
+                            block
+                            font-body
+                            text-[11px]
+                            text-white/30
+                          "
+                        >
                           Retrouve facilement tes billets.
                         </span>
                       </div>
@@ -1360,7 +2123,21 @@ navigate(
                           "register",
                         )
                       }
-                      className="shrink-0 rounded-full bg-white px-5 py-2.5 font-subtitle text-[10px] uppercase tracking-[0.1em] text-black transition hover:bg-white/90"
+                      className="
+                        shrink-0
+                        rounded-full
+                        bg-white
+                        px-5
+                        py-2.5
+                        font-subtitle
+                        text-[10px]
+                        uppercase
+                        tracking-[0.1em]
+                        text-black
+                        transition
+
+                        hover:bg-white/90
+                      "
                     >
                       Créer mon compte
                     </button>
@@ -1368,22 +2145,60 @@ navigate(
                 </div>
 
                 {/* DIVIDER */}
-                <div className="my-6 flex items-center gap-4">
-                  <span className="h-px flex-1 bg-white/[0.08]" />
 
-                  <span className="font-subtitle text-[9px] uppercase tracking-[0.18em] text-white/25">
+                <div
+                  className="
+                    my-5
+                    flex
+                    items-center
+                    gap-4
+
+                    sm:my-6
+                  "
+                >
+                  <span
+                    className="
+                      h-px
+                      flex-1
+                      bg-white/[0.08]
+                    "
+                  />
+
+                  <span
+                    className="
+                      font-subtitle
+                      text-[9px]
+                      uppercase
+                      tracking-[0.18em]
+                      text-white/25
+                    "
+                  >
                     ou continuer sans compte
                   </span>
 
-                  <span className="h-px flex-1 bg-white/[0.08]" />
+                  <span
+                    className="
+                      h-px
+                      flex-1
+                      bg-white/[0.08]
+                    "
+                  />
                 </div>
 
-                {/* FORM */}
-                <div className="grid gap-4">
+                {/* FIELDS */}
 
+                <div className="grid gap-4">
                   {/* NAME */}
+
                   <label>
-                    <span className="mb-2 block font-subtitle text-xs">
+                    <span
+                      className="
+                        mb-2
+                        block
+                        font-subtitle
+                        text-xs
+                      "
+                    >
                       Nom du groupe ou du client
                     </span>
 
@@ -1413,6 +2228,7 @@ navigate(
                         ring-0
                         transition
                         placeholder:text-white/20
+
                         focus:outline-none
                         focus:ring-0
                         focus-visible:outline-none
@@ -1425,21 +2241,37 @@ navigate(
                             : "border-white/[0.09] hover:border-white/15 focus:border-white/20"
                         }
                       `}
-                      placeholder="Lionel Geko"
+                      placeholder="Pierre Dupont"
                       autoComplete="name"
                     />
 
                     {showValidation &&
                       !nameValid && (
-                        <p className="mt-2 font-body text-[10px] leading-4 text-red-400">
+                        <p
+                          className="
+                            mt-2
+                            font-body
+                            text-[10px]
+                            leading-4
+                            text-red-400
+                          "
+                        >
                           Renseigne ton nom.
                         </p>
                       )}
                   </label>
 
                   {/* PHONE */}
+
                   <div className="min-w-0">
-                    <span className="mb-2 block font-subtitle text-xs">
+                    <span
+                      className="
+                        mb-2
+                        block
+                        font-subtitle
+                        text-xs
+                      "
+                    >
                       Téléphone
                     </span>
 
@@ -1451,13 +2283,12 @@ navigate(
                         rounded-[16px]
                         border
                         bg-[#151515]
-                        transition
 
                         ${
                           showValidation &&
                           !phoneValid
                             ? "border-red-500/70 bg-red-500/[0.04]"
-                            : "border-white/[0.09] hover:border-white/15 focus-within:border-white/20"
+                            : "border-white/[0.09]"
                         }
                       `}
                     >
@@ -1619,15 +2450,31 @@ navigate(
 
                     {showValidation &&
                       !phoneValid && (
-                        <p className="mt-2 font-body text-[10px] leading-4 text-red-400">
+                        <p
+                          className="
+                            mt-2
+                            font-body
+                            text-[10px]
+                            leading-4
+                            text-red-400
+                          "
+                        >
                           Renseigne un numéro de téléphone valide.
                         </p>
                       )}
                   </div>
 
                   {/* EMAIL */}
+
                   <label>
-                    <span className="mb-2 block font-subtitle text-xs">
+                    <span
+                      className="
+                        mb-2
+                        block
+                        font-subtitle
+                        text-xs
+                      "
+                    >
                       E-mail
                     </span>
 
@@ -1657,26 +2504,33 @@ navigate(
                         ring-0
                         transition
                         placeholder:text-white/20
+
                         focus:outline-none
                         focus:ring-0
-                        focus-visible:outline-none
-                        focus-visible:ring-0
 
                         ${
                           showValidation &&
                           !emailValid
                             ? "border-red-500/70 bg-red-500/[0.04]"
-                            : "border-white/[0.09] hover:border-white/15 focus:border-white/20"
+                            : "border-white/[0.09]"
                         }
                       `}
                       type="email"
-                      placeholder="lionel.geko@gmail.com"
+                      placeholder="pierre.dupont@gmail.com"
                       autoComplete="email"
                     />
 
                     {showValidation &&
                       !emailValid && (
-                        <p className="mt-2 font-body text-[10px] leading-4 text-red-400">
+                        <p
+                          className="
+                            mt-2
+                            font-body
+                            text-[10px]
+                            leading-4
+                            text-red-400
+                          "
+                        >
                           Renseigne une adresse e-mail valide.
                         </p>
                       )}
@@ -1718,21 +2572,53 @@ navigate(
               </div>
             ) : (
               <div className="p-5 sm:p-7">
-
-                {/* CONNECTED */}
-                <div className="flex items-center gap-4">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-green-500/10 text-green-400">
+                <div
+                  className="
+                    flex
+                    items-center
+                    gap-4
+                  "
+                >
+                  <span
+                    className="
+                      grid
+                      h-11
+                      w-11
+                      shrink-0
+                      place-items-center
+                      rounded-full
+                      bg-green-500/10
+                      text-green-400
+                    "
+                  >
                     <CheckCircle2
                       size={20}
                     />
                   </span>
 
                   <div className="min-w-0">
-                    <span className="font-subtitle text-[9px] uppercase tracking-[0.18em] text-green-400">
+                    <span
+                      className="
+                        font-subtitle
+                        text-[9px]
+                        uppercase
+                        tracking-[0.18em]
+                        text-green-400
+                      "
+                    >
                       Compte connecté
                     </span>
 
-                    <strong className="mt-1 block truncate font-subtitle text-sm text-white/80">
+                    <strong
+                      className="
+                        mt-1
+                        block
+                        truncate
+                        font-subtitle
+                        text-sm
+                        text-white/80
+                      "
+                    >
                       {user.user_metadata
                         ?.full_name ||
                         user.email ||
@@ -1740,7 +2626,16 @@ navigate(
                     </strong>
 
                     {user.email && (
-                      <span className="mt-1 block truncate font-body text-[11px] text-white/30">
+                      <span
+                        className="
+                          mt-1
+                          block
+                          truncate
+                          font-body
+                          text-[11px]
+                          text-white/30
+                        "
+                      >
                         {user.email}
                       </span>
                     )}
@@ -1785,17 +2680,74 @@ navigate(
             )}
           </section>
 
-          {/* SUMMARY */}
-          <aside className="h-fit overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#111] lg:sticky lg:top-28">
+          {/* =================================================
+              SUMMARY
+          ================================================= */}
 
-            {/* SUMMARY HEADER */}
-            <div className="border-b border-white/[0.07] px-5 py-5">
-              <div className="flex w-full items-center justify-between gap-3">
-                <h2 className="whitespace-nowrap font-title text-2xl uppercase leading-none">
+          <aside
+            className="
+              h-fit
+              overflow-hidden
+              rounded-[24px]
+              border
+              border-white/[0.08]
+              bg-[#111]
+
+              sm:rounded-[28px]
+
+              lg:sticky
+              lg:top-28
+            "
+          >
+            {/* HEADER */}
+
+            <div
+              className="
+                border-b
+                border-white/[0.07]
+                px-4
+                py-4
+
+                sm:px-5
+                sm:py-5
+              "
+            >
+              <div
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  gap-3
+                "
+              >
+                <h2
+                  className="
+                    font-title
+                    text-xl
+                    uppercase
+
+                    sm:text-2xl
+                  "
+                >
                   Récapitulatif
                 </h2>
 
-                <span className="shrink-0 whitespace-nowrap rounded-full border border-white/[0.07] bg-[#151515] px-3 py-1.5 font-subtitle text-[9px] uppercase tracking-[0.1em] text-white/35">
+                <span
+                  className="
+                    rounded-full
+                    border
+                    border-white/[0.07]
+                    bg-[#151515]
+                    px-3
+                    py-1.5
+                    font-subtitle
+                    text-[8px]
+                    uppercase
+                    text-white/35
+
+                    sm:text-[9px]
+                  "
+                >
                   {eveningCount}{" "}
                   soirée
                   {eveningCount >
@@ -1807,9 +2759,20 @@ navigate(
             </div>
 
             {/* ITEMS */}
-            <div className="custom-scrollbar max-h-[58vh] space-y-2 overflow-y-auto p-3">
+
+            <div
+              className="
+                custom-scrollbar
+                max-h-[62vh]
+                space-y-2
+                overflow-y-auto
+                p-3
+              "
+            >
               {checkoutItems.map(
-                (item) => {
+                (
+                  item,
+                ) => {
                   const image =
                     getCartItemImage(
                       item,
@@ -1818,6 +2781,19 @@ navigate(
                   const dates =
                     getCartItemDates(
                       item,
+                    );
+
+                  const extras =
+                    item.extras ??
+                    [];
+
+                  const selectedExtras =
+                    extras.filter(
+                      (
+                        extra,
+                      ) =>
+                        extra.quantity >
+                        0,
                     );
 
                   const amount =
@@ -1833,244 +2809,619 @@ navigate(
                         item.key
                       }
                       className="
-                        group
+                        overflow-hidden
                         rounded-[17px]
                         border
                         border-white/[0.07]
                         bg-[#151515]
-                        p-3
-                        transition-colors
-                        duration-200
-                        hover:border-white/[0.11]
                       "
                     >
-                      <div className="grid grid-cols-[68px_minmax(0,1fr)] items-center gap-3">
+                      <div className="p-3">
+                        <div
+                          className="
+                            grid
+                            grid-cols-[60px_minmax(0,1fr)]
+                            gap-3
 
-                        {/* IMAGE */}
-                        <div className="relative h-[68px] w-[68px] overflow-hidden rounded-[12px] bg-[#0f0f0f]">
-                          {image ? (
-                            <img
-                              src={
-                                image
-                              }
-                              alt={
-                                item.kind ===
-                                "pack"
-                                  ? item.packName
-                                  : item.eventName
-                              }
-                              loading="lazy"
-                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                            />
-                          ) : (
-                            <div className="grid h-full w-full place-items-center text-white/20">
-                              {item.kind ===
-                              "pack" ? (
-                                <Package
-                                  size={20}
-                                />
-                              ) : (
-                                <Ticket
-                                  size={20}
-                                />
-                              )}
-                            </div>
-                          )}
-                        </div>
+                            sm:grid-cols-[68px_minmax(0,1fr)]
+                          "
+                        >
+                          {/* IMAGE */}
 
-                        {/* INFO */}
-                        <div className="min-w-0 translate-y-[2px]">
+                          <div
+                            className="
+                              h-[60px]
+                              w-[60px]
+                              overflow-hidden
+                              rounded-[12px]
+                              bg-[#0f0f0f]
 
-                          {/* TOP */}
-                          <div className="flex items-center justify-between gap-3">
-
-                            {/* TYPE */}
-                            <span className="inline-flex min-w-0 items-center gap-1.5 font-subtitle text-[9px] uppercase tracking-[0.1em] text-secondary">
-                              {item.kind ===
-                              "pack" ? (
-                                <Package
-                                  size={10}
-                                  className="shrink-0"
-                                />
-                              ) : (
-                                <Ticket
-                                  size={10}
-                                  className="shrink-0"
-                                />
-                              )}
-
-                              <span className="truncate">
-                                {amount}{" "}
-
-                                {item.kind ===
-                                "pack"
-                                  ? amount > 1
-                                    ? "packs"
-                                    : "pack"
-                                  : amount > 1
-                                    ? "billets"
-                                    : "billet"}
-
-                                {item.kind !==
-                                  "pack" && (
-                                  <>
-                                    {" "}
-
-                                    {item.gender ===
-                                    "woman"
-                                      ? "Femme"
-                                      : "Homme"}
-                                  </>
-                                )}
-                              </span>
-                            </span>
-
-                            {/* PRICE */}
-                            <strong className="shrink-0 font-subtitle text-[14px] text-white">
-                              {formatMoney(
-                                getCartItemTotal(
-                                  item,
-                                ),
-                                locale,
-                              )}
-                            </strong>
-                          </div>
-
-                          {/* NAME */}
-                          <strong className="mt-1.5 block truncate font-subtitle text-[13px] text-white/90">
-                            {item.kind ===
-                            "pack"
-                              ? item.packName
-                              : item.eventName}
-                          </strong>
-
-                          {/* BOTTOM */}
-                          <div className="mt-2 flex min-h-[32px] items-center justify-between gap-3">
-
-                            {/* DATE */}
-                            <div className="flex min-w-0 items-center gap-1.5">
-                              {dates.length >
-                                0 && (
-                                <>
-                                  <CalendarDays
-                                    size={11}
-                                    className="shrink-0 text-white/30"
-                                  />
-
-                                  <span className="truncate font-body text-[9px] text-white/35">
-                                    {formatEventDate(
-                                      dates[0],
-                                      locale,
-                                    )}
-
-                                    {item.kind ===
-                                      "pack" &&
-                                    dates.length >
-                                      1
-                                      ? ` · +${dates.length - 1}`
-                                      : ""}
-                                  </span>
-                                </>
-                              )}
-                            </div>
-
-                            {/* EVENT QUANTITY */}
-                            {item.kind !==
-                              "pack" && (
-                              <QuantityControl
-                                value={
-                                  item.quantity
+                              sm:h-[68px]
+                              sm:w-[68px]
+                            "
+                          >
+                            {image ? (
+                              <img
+                                src={
+                                  image
                                 }
-                                onMinus={() =>
-                                  updateEventQuantity(
-                                    item.key,
-                                    -1,
-                                  )
+                                alt={
+                                  item.kind ===
+                                  "pack"
+                                    ? item.packName
+                                    : item.eventName
                                 }
-                                onPlus={() =>
-                                  updateEventQuantity(
-                                    item.key,
-                                    1,
-                                  )
-                                }
+                                className="
+                                  h-full
+                                  w-full
+                                  object-cover
+                                "
                               />
-                            )}
-
-                            {/* PACK QUANTITY */}
-                            {item.kind ===
-                              "pack" && (
-                              <div className="flex shrink-0 gap-1">
-
-                                {item.maleQuantity >
-                                  0 && (
-                                  <QuantityControl
-                                    label="H"
-                                    value={
-                                      item.maleQuantity
-                                    }
-                                    onMinus={() =>
-                                      updatePackQuantity(
-                                        item.key,
-                                        "man",
-                                        -1,
-                                      )
-                                    }
-                                    onPlus={() =>
-                                      updatePackQuantity(
-                                        item.key,
-                                        "man",
-                                        1,
-                                      )
-                                    }
+                            ) : (
+                              <div
+                                className="
+                                  grid
+                                  h-full
+                                  place-items-center
+                                  text-white/20
+                                "
+                              >
+                                {item.kind ===
+                                "pack" ? (
+                                  <Package
+                                    size={20}
                                   />
-                                )}
-
-                                {item.femaleQuantity >
-                                  0 && (
-                                  <QuantityControl
-                                    label="F"
-                                    value={
-                                      item.femaleQuantity
-                                    }
-                                    onMinus={() =>
-                                      updatePackQuantity(
-                                        item.key,
-                                        "woman",
-                                        -1,
-                                      )
-                                    }
-                                    onPlus={() =>
-                                      updatePackQuantity(
-                                        item.key,
-                                        "woman",
-                                        1,
-                                      )
-                                    }
+                                ) : (
+                                  <Ticket
+                                    size={20}
                                   />
                                 )}
                               </div>
                             )}
                           </div>
+
+                          {/* INFO */}
+
+                          <div className="min-w-0">
+                            <div
+                              className="
+                                flex
+                                items-start
+                                justify-between
+                                gap-2
+                              "
+                            >
+                              <div className="min-w-0">
+                                <span
+                                  className="
+                                    font-subtitle
+                                    text-[8px]
+                                    uppercase
+                                    tracking-[0.1em]
+                                    text-secondary
+
+                                    sm:text-[9px]
+                                  "
+                                >
+                                  {amount}{" "}
+
+                                  {item.kind ===
+                                  "pack"
+                                    ? amount >
+                                      1
+                                      ? "packs"
+                                      : "pack"
+                                    : amount >
+                                        1
+                                      ? "billets"
+                                      : "billet"}
+
+                                  {item.kind !==
+                                    "pack" && (
+                                    <>
+                                      {" "}
+
+                                      {item.gender ===
+                                      "woman"
+                                        ? "Femme"
+                                        : "Homme"}
+                                    </>
+                                  )}
+                                </span>
+
+                                {selectedExtras.length >
+                                  0 && (
+                                  <span
+                                    className="
+                                      ml-1.5
+                                      rounded-full
+                                      bg-green-500/[0.08]
+                                      px-1.5
+                                      py-0.5
+                                      font-subtitle
+                                      text-[6px]
+                                      uppercase
+                                      text-green-300
+
+                                      sm:ml-2
+                                      sm:px-2
+                                      sm:py-1
+                                      sm:text-[7px]
+                                    "
+                                  >
+                                    {
+                                      selectedExtras.length
+                                    }{" "}
+                                    extra
+                                    {selectedExtras.length >
+                                    1
+                                      ? "s"
+                                      : ""}
+                                  </span>
+                                )}
+                              </div>
+
+                              <strong
+                                className="
+                                  shrink-0
+                                  font-subtitle
+                                  text-[13px]
+
+                                  sm:text-[14px]
+                                "
+                              >
+                                {formatMoney(
+                                  getCartItemTotal(
+                                    item,
+                                  ),
+                                  locale,
+                                )}
+                              </strong>
+                            </div>
+
+                            <strong
+                              className="
+                                block
+                                truncate
+                                font-subtitle
+                                text-[12px]
+                                text-white/90
+
+                                sm:text-[13px]
+                              "
+                            >
+                              {item.kind ===
+                              "pack"
+                                ? item.packName
+                                : item.eventName}
+                            </strong>
+
+                            <div
+                              className="
+                                flex
+                                items-center
+                                justify-between
+                                gap-2
+                              "
+                            >
+                              <div
+                                className="
+                                  flex
+                                  min-w-0
+                                  items-center
+                                  gap-1.5
+                                "
+                              >
+                                {dates.length >
+                                  0 && (
+                                  <>
+                                    <CalendarDays
+                                      size={11}
+                                      className="
+                                        shrink-0
+                                        text-white/30
+                                      "
+                                    />
+
+                                    <span
+                                      className="
+                                        truncate
+                                        font-body
+                                        text-[8px]
+                                        text-white/35
+
+                                        sm:text-[9px]
+                                      "
+                                    >
+                                      {formatEventDate(
+                                        dates[0],
+                                        locale,
+                                      )}
+
+                                      {item.kind ===
+                                        "pack" &&
+                                      dates.length >
+                                        1
+                                        ? ` · +${dates.length - 1}`
+                                        : ""}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+
+                              {item.kind !==
+                                "pack" && (
+                                <QuantityControl
+                                  value={
+                                    item.quantity
+                                  }
+                                  onMinus={() =>
+                                    updateEventQuantity(
+                                      item.key,
+                                      -1,
+                                    )
+                                  }
+                                  onPlus={() =>
+                                    updateEventQuantity(
+                                      item.key,
+                                      1,
+                                    )
+                                  }
+                                  disablePlus={
+                                    item.maximumAvailable !==
+                                      null &&
+                                    item.maximumAvailable !==
+                                      undefined &&
+                                    item.quantity >=
+                                      item.maximumAvailable
+                                  }
+                                />
+                              )}
+
+                              {item.kind ===
+                                "pack" && (
+                                <div
+                                  className="
+                                    flex
+                                    gap-1
+                                  "
+                                >
+                                  {item.maleQuantity >
+                                    0 && (
+                                    <QuantityControl
+                                      label="H"
+                                      value={
+                                        item.maleQuantity
+                                      }
+                                      onMinus={() =>
+                                        updatePackQuantity(
+                                          item.key,
+                                          "man",
+                                          -1,
+                                        )
+                                      }
+                                      onPlus={() =>
+                                        updatePackQuantity(
+                                          item.key,
+                                          "man",
+                                          1,
+                                        )
+                                      }
+                                    />
+                                  )}
+
+                                  {item.femaleQuantity >
+                                    0 && (
+                                    <QuantityControl
+                                      label="F"
+                                      value={
+                                        item.femaleQuantity
+                                      }
+                                      onMinus={() =>
+                                        updatePackQuantity(
+                                          item.key,
+                                          "woman",
+                                          -1,
+                                        )
+                                      }
+                                      onPlus={() =>
+                                        updatePackQuantity(
+                                          item.key,
+                                          "woman",
+                                          1,
+                                        )
+                                      }
+                                    />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
+
+                      {/* OPTIONS */}
+
+                      {extras.length >
+                        0 && (
+                        <div
+                          className="
+                            border-t
+                            border-white/[0.07]
+                            bg-[#101010]
+                            p-3
+                          "
+                        >
+                          <span
+                            className="
+                              mb-2
+                              block
+                              font-subtitle
+                              text-[8px]
+                              uppercase
+                              tracking-[0.12em]
+                              text-white/30
+                            "
+                          >
+                            Options & tables
+                          </span>
+
+                          <div className="space-y-2">
+                            {extras.map(
+                              (
+                                extra,
+                              ) => {
+                                const ticketCount =
+                                  getEventTicketCount(
+                                    checkoutItems,
+
+                                    Number(
+                                      extra.eventId,
+                                    ),
+                                  );
+
+                                const maximum =
+                                  extra.kind ===
+                                  "table"
+                                    ? ticketCount >
+                                      0
+                                      ? 1
+                                      : 0
+                                    : ticketCount;
+
+                                const selected =
+                                  extra.quantity >
+                                  0;
+
+                                return (
+                                  <div
+                                    key={
+                                      extra.key
+                                    }
+                                    className={`
+                                      flex
+                                      items-center
+                                      gap-2.5
+                                      rounded-[13px]
+                                      border
+                                      px-2.5
+                                      py-2.5
+                                      transition
+
+                                      sm:gap-3
+                                      sm:px-3
+
+                                      ${
+                                        selected
+                                          ? extra.kind ===
+                                            "table"
+                                            ? "border-[#ff4f9a]/20 bg-[#ff4f9a]/[0.04]"
+                                            : "border-secondary/20 bg-secondary/[0.04]"
+                                          : "border-white/[0.06] bg-white/[0.015]"
+                                      }
+                                    `}
+                                  >
+                                    <span
+                                      className={`
+                                        grid
+                                        h-8
+                                        w-8
+                                        shrink-0
+                                        place-items-center
+                                        rounded-[9px]
+
+                                        ${
+                                          extra.kind ===
+                                          "table"
+                                            ? "bg-[#ff4f9a]/10 text-[#ff6aa8]"
+                                            : "bg-secondary/10 text-secondary"
+                                        }
+                                      `}
+                                    >
+                                      {extra.kind ===
+                                      "table" ? (
+                                        <Armchair
+                                          size={14}
+                                        />
+                                      ) : (
+                                        <BadgePlus
+                                          size={14}
+                                        />
+                                      )}
+                                    </span>
+
+                                    <div
+                                      className="
+                                        min-w-0
+                                        flex-1
+                                      "
+                                    >
+                                      <span
+                                        className="
+                                          block
+                                          font-subtitle
+                                          text-[7px]
+                                          uppercase
+                                          tracking-[0.1em]
+                                          text-white/30
+                                        "
+                                      >
+                                        {extra.kind ===
+                                        "table"
+                                          ? "Table"
+                                          : "Option"}
+                                      </span>
+
+                                      <strong
+                                        className="
+                                          mt-0.5
+                                          block
+                                          truncate
+                                          font-subtitle
+                                          text-[10px]
+                                          text-white/80
+
+                                          sm:text-[11px]
+                                        "
+                                      >
+                                        {extra.name}
+                                      </strong>
+
+                                      {extra.kind ===
+                                        "table" &&
+                                        typeof extra.fullPrice ===
+                                          "number" &&
+                                        extra.fullPrice >
+                                          0 && (
+                                          <span
+                                            className="
+                                              mt-0.5
+                                              block
+                                              font-body
+                                              text-[8px]
+                                              text-white/25
+                                            "
+                                          >
+                                            Prix total :{" "}
+                                            {formatMoney(
+                                              extra.fullPrice,
+                                              locale,
+                                            )}
+                                          </span>
+                                        )}
+                                    </div>
+
+                                    <div
+                                      className="
+                                        shrink-0
+                                        text-right
+                                      "
+                                    >
+                                      <strong
+                                        className={`
+                                          block
+                                          font-subtitle
+                                          text-[10px]
+
+                                          ${
+                                            extra.kind ===
+                                            "table"
+                                              ? "text-[#ff6aa8]"
+                                              : "text-secondary"
+                                          }
+                                        `}
+                                      >
+                                        {selected
+                                          ? "+"
+                                          : ""}
+
+                                        {formatMoney(
+                                          extra.unitPrice *
+                                            extra.quantity,
+
+                                          locale,
+                                        )}
+                                      </strong>
+
+                                      <div className="mt-1.5">
+                                        <QuantityControl
+                                          value={
+                                            extra.quantity
+                                          }
+                                          onMinus={() =>
+                                            updateExtraQuantity(
+                                              extra.key,
+                                              -1,
+                                            )
+                                          }
+                                          onPlus={() =>
+                                            updateExtraQuantity(
+                                              extra.key,
+                                              1,
+                                            )
+                                          }
+                                          disableMinus={
+                                            extra.quantity <=
+                                            0
+                                          }
+                                          disablePlus={
+                                            maximum <=
+                                              0 ||
+                                            extra.quantity >=
+                                              maximum
+                                          }
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              },
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </article>
                   );
                 },
               )}
             </div>
 
-            {/* TOTAL */}
-            <div className="border-t border-white/[0.07] p-5">
-              <div className="space-y-2.5 font-body text-xs">
+            {/* TOTALS */}
 
-                <div className="flex items-center justify-between text-white/35">
+            <div
+              className="
+                border-t
+                border-white/[0.07]
+                p-4
+
+                sm:p-5
+              "
+            >
+              <div
+                className="
+                  space-y-2.5
+                  font-body
+                  text-xs
+                "
+              >
+                <div
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    text-white/35
+                  "
+                >
                   <span>
-                    {t(
-                      "common.subtotal",
-                    )}
+                    Sous-total
                   </span>
 
-                  <strong className="font-subtitle text-white/60">
+                  <strong
+                    className="
+                      font-subtitle
+                      text-white/60
+                    "
+                  >
                     {formatMoney(
                       checkoutSubtotal,
                       locale,
@@ -2078,28 +3429,61 @@ navigate(
                   </strong>
                 </div>
 
-                <div className="flex items-center justify-between text-white/35">
+                <div
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    text-white/35
+                  "
+                >
                   <span>
-                    {t(
-                      "common.fees",
-                    )}
+                    Frais
                   </span>
 
-                  <strong className="font-subtitle text-white/60">
+                  <strong
+                    className="
+                      font-subtitle
+                      text-white/60
+                    "
+                  >
                     {formatMoney(
-                      serviceFee,
+                      checkoutServiceFee,
                       locale,
                     )}
                   </strong>
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center justify-between border-t border-white/[0.08] pt-4">
-                <span className="font-title text-xl uppercase">
+              <div
+                className="
+                  mt-4
+                  flex
+                  items-center
+                  justify-between
+                  border-t
+                  border-white/[0.08]
+                  pt-4
+                "
+              >
+                <span
+                  className="
+                    font-title
+                    text-xl
+                    uppercase
+                  "
+                >
                   Total
                 </span>
 
-                <strong className="font-title text-3xl">
+                <strong
+                  className="
+                    font-title
+                    text-2xl
+
+                    sm:text-3xl
+                  "
+                >
                   {formatMoney(
                     checkoutTotal,
                     locale,
@@ -2114,6 +3498,10 @@ navigate(
   );
 }
 
+/* =========================================================
+   PAYMENT SECTION
+========================================================= */
+
 type PaymentSectionProps = {
   accepted: boolean;
 
@@ -2122,19 +3510,12 @@ type PaymentSectionProps = {
   ) => void;
 
   error: string;
-
   loading: boolean;
-
   canSubmit: boolean;
-
   total: number;
-
   locale: string;
-
   acceptText: string;
-
   preparingText: string;
-
   showValidation: boolean;
 };
 
@@ -2156,8 +3537,8 @@ function PaymentSection({
 
   return (
     <div className="pt-1">
-
       {/* CGV */}
+
       <div
         className={`
           rounded-[14px]
@@ -2171,7 +3552,15 @@ function PaymentSection({
           }
         `}
       >
-        <label className="flex cursor-pointer items-start gap-3 py-1">
+        <label
+          className="
+            flex
+            cursor-pointer
+            items-start
+            gap-3
+            py-1
+          "
+        >
           <input
             type="checkbox"
             checked={
@@ -2192,6 +3581,7 @@ function PaymentSection({
               accent-orange-400
               outline-none
               ring-0
+
               focus:outline-none
               focus:ring-0
             "
@@ -2213,11 +3603,32 @@ function PaymentSection({
             {acceptText}
           </span>
         </label>
-
       </div>
 
+      {/* ERROR */}
+
+      {error && (
+        <div
+          className="
+            mt-3
+            rounded-[14px]
+            border
+            border-red-500/20
+            bg-red-500/[0.07]
+            px-4
+            py-3
+            font-body
+            text-[11px]
+            leading-5
+            text-red-200
+          "
+        >
+          {error}
+        </div>
+      )}
 
       {/* PAY */}
+
       <button
         type="submit"
         disabled={
@@ -2227,7 +3638,7 @@ function PaymentSection({
           group
           mt-3
           flex
-          min-h-[56px]
+          min-h-[54px]
           w-full
           items-center
           justify-center
@@ -2240,8 +3651,12 @@ function PaymentSection({
           text-black
           transition-all
           duration-300
+
+          sm:min-h-[56px]
+
           hover:-translate-y-0.5
           hover:brightness-105
+
           disabled:cursor-not-allowed
           disabled:opacity-60
           disabled:hover:translate-y-0
@@ -2259,7 +3674,11 @@ function PaymentSection({
         {!loading && (
           <ArrowRight
             size={17}
-            className="transition-transform duration-300 group-hover:translate-x-1"
+            className="
+              transition-transform
+              duration-300
+              group-hover:translate-x-1
+            "
           />
         )}
       </button>

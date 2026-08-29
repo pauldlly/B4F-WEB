@@ -338,7 +338,6 @@ export function PackCard({
                 font-title
                 uppercase
                 leading-[0.92]
-                tracking-[-0.035em]
                 transition-all
                 duration-300
                 group-hover:brightness-125

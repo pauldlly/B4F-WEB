@@ -514,7 +514,6 @@ export function Header() {
                     text-[30px]
                     uppercase
                     leading-[0.90]
-                    tracking-[-0.035em]
                     text-white
                   "
                 >
@@ -630,7 +629,6 @@ export function Header() {
                               text-[24px]
                               uppercase
                               leading-none
-                              tracking-[-0.025em]
                               text-white
                             "
                           >

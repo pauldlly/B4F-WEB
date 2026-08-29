@@ -247,9 +247,6 @@ function getDirectTicketImage(
     }
   }
 
-  /*
-   * EVENT IMBRIQUÉ
-   */
   const event =
     getRecord(
       record.event,
@@ -275,9 +272,6 @@ function getDirectTicketImage(
     }
   }
 
-  /*
-   * PACK IMBRIQUÉ
-   */
   const pack =
     getRecord(
       record.pack,
@@ -556,11 +550,8 @@ function getOrderImage(
   catalog:
     CatalogVisual[],
 ): string | null {
+  /* 1. IMAGE DIRECTE */
 
-  /*
-   * 1. IMAGE DÉJÀ FOURNIE
-   * PAR LA COMMANDE
-   */
   for (
     const ticket
     of order.tickets
@@ -577,12 +568,8 @@ function getOrderImage(
     }
   }
 
-  /*
-   * 2. PACK
-   *
-   * Prioritaire si la commande
-   * contient un pack.
-   */
+  /* 2. PACK */
+
   for (
     const ticket
     of order.tickets
@@ -642,9 +629,8 @@ function getOrderImage(
     }
   }
 
-  /*
-   * 3. EVENT PAR ID
-   */
+  /* 3. EVENT PAR ID */
+
   for (
     const ticket
     of order.tickets
@@ -678,9 +664,8 @@ function getOrderImage(
     }
   }
 
-  /*
-   * 4. EVENT PAR NOM + DATE
-   */
+  /* 4. EVENT PAR NOM + DATE */
+
   for (
     const ticket
     of order.tickets
@@ -732,9 +717,8 @@ function getOrderImage(
     }
   }
 
-  /*
-   * 5. EVENT PAR NOM UNIQUEMENT
-   */
+  /* 5. EVENT PAR NOM */
+
   for (
     const ticket
     of order.tickets
@@ -929,9 +913,6 @@ function getOrderDateLabel(
     return "";
   }
 
-  /*
-   * UNE SEULE DATE
-   */
   if (
     dates.length ===
     1
@@ -975,10 +956,6 @@ function getOrderDateLabel(
     );
   }
 
-  /*
-   * PLUSIEURS DATES :
-   * première -> dernière
-   */
   const first =
     dates[0].date;
 
@@ -1020,17 +997,20 @@ export function MyTicketsPage() {
   const {
     user,
     openAuth,
-  } = useAuth();
+  } =
+    useAuth();
 
   const {
     orders:
       demoOrders,
-  } = useOrders();
+  } =
+    useOrders();
 
   const {
     t,
     locale,
-  } = useI18n();
+  } =
+    useI18n();
 
   const [
     reference,
@@ -1050,7 +1030,7 @@ export function MyTicketsPage() {
     "true";
 
   /* =====================================================
-     CATALOGUE EVENT + PACK
+     CATALOGUE
   ===================================================== */
 
   const eventsQuery =
@@ -1066,74 +1046,83 @@ export function MyTicketsPage() {
   const catalog =
     useMemo<
       CatalogVisual[]
-    >(() => {
-      const events =
-        eventsQuery.data?.pages.flatMap(
-          (
-            page,
-          ) =>
-            page.items,
-        ) ?? [];
+    >(
+      () => {
+        const events =
+          eventsQuery.data
+            ?.pages
+            .flatMap(
+              (
+                page,
+              ) =>
+                page.items,
+            ) ??
+          [];
 
-      const packs =
-        packsQuery.data?.pages.flatMap(
-          (
-            page,
-          ) =>
-            page.items,
-        ) ?? [];
+        const packs =
+          packsQuery.data
+            ?.pages
+            .flatMap(
+              (
+                page,
+              ) =>
+                page.items,
+            ) ??
+          [];
 
-      return [
-        ...events.map(
-          (
-            event,
-          ) => ({
-            id:
-              String(
-                event.id,
-              ),
+        return [
+          ...events.map(
+            (
+              event,
+            ) => ({
+              id:
+                String(
+                  event.id,
+                ),
 
-            name:
-              event.name,
+              name:
+                event.name,
 
-            imageUrl:
-              event.imageUrl ??
-              null,
+              imageUrl:
+                event.imageUrl ??
+                null,
 
-            eventDate:
-              event.eventDate ??
-              null,
+              eventDate:
+                event.eventDate ??
+                null,
 
-            kind:
-              "event" as const,
-          }),
-        ),
+              kind:
+                "event" as const,
+            }),
+          ),
 
-        ...packs.map(
-          (
-            pack,
-          ) => ({
-            id:
-              String(
-                pack.id,
-              ),
+          ...packs.map(
+            (
+              pack,
+            ) => ({
+              id:
+                String(
+                  pack.id,
+                ),
 
-            name:
-              pack.name,
+              name:
+                pack.name,
 
-            imageUrl:
-              pack.imageUrl ??
-              null,
+              imageUrl:
+                pack.imageUrl ??
+                null,
 
-            kind:
-              "pack" as const,
-          }),
-        ),
-      ];
-    }, [
-      eventsQuery.data,
-      packsQuery.data,
-    ]);
+              kind:
+                "pack" as const,
+            }),
+          ),
+        ];
+      },
+      [
+        eventsQuery.data,
+        packsQuery.data,
+      ],
+    );
 
   /* =====================================================
      ORDERS
@@ -1161,34 +1150,21 @@ export function MyTicketsPage() {
     });
 
   const visibleOrders =
-    useMemo(() => {
-      const source =
-        demoMode
-          ? demoOrders
-          : ordersQuery.data ??
-            [];
+    useMemo(
+      () => {
+        const source =
+          demoMode
+            ? demoOrders
+            : ordersQuery.data ??
+              [];
 
-      const map =
-        new Map<
-          string,
-          GuestOrder
-        >();
+        const map =
+          new Map<
+            string,
+            GuestOrder
+          >();
 
-      source.forEach(
-        (
-          order,
-        ) => {
-          map.set(
-            order.id,
-            order,
-          );
-        },
-      );
-
-      if (
-        !demoMode
-      ) {
-        demoOrders.forEach(
+        source.forEach(
           (
             order,
           ) => {
@@ -1198,54 +1174,71 @@ export function MyTicketsPage() {
             );
           },
         );
-      }
 
-      return Array.from(
-        map.values(),
-      ).sort(
-        (
-          a,
-          b,
-        ) =>
-          String(
-            b.createdAt,
-          ).localeCompare(
+        if (
+          !demoMode
+        ) {
+          demoOrders.forEach(
+            (
+              order,
+            ) => {
+              map.set(
+                order.id,
+                order,
+              );
+            },
+          );
+        }
+
+        return Array.from(
+          map.values(),
+        ).sort(
+          (
+            a,
+            b,
+          ) =>
             String(
-              a.createdAt,
+              b.createdAt,
+            ).localeCompare(
+              String(
+                a.createdAt,
+              ),
             ),
-          ),
-      );
-    }, [
-      demoMode,
-      demoOrders,
-      ordersQuery.data,
-    ]);
+        );
+      },
+      [
+        demoMode,
+        demoOrders,
+        ordersQuery.data,
+      ],
+    );
 
   /* =====================================================
      OPEN ORDER
   ===================================================== */
 
-  const openOrder = (
-    order:
-      GuestOrder,
-  ) => {
-    const accessToken =
-      order.accessToken ||
-      getGuestOrderAccess(
-        order.id,
-      )?.accessToken ||
-      "";
+  const openOrder =
+    (
+      order:
+        GuestOrder,
+    ) => {
+      const accessToken =
+        order.accessToken ||
+        getGuestOrderAccess(
+          order.id,
+        )?.accessToken ||
+        "";
 
-    navigate(
-      `/commande/${order.id}${
-        accessToken
-          ? `?token=${encodeURIComponent(
-              accessToken,
-            )}`
-          : ""
-      }`,
-    );
-  };
+      navigate(
+        `/commande/${order.id}${
+          accessToken
+            ? `?token=${encodeURIComponent(
+                accessToken,
+              )}`
+            : ""
+        }`,
+      );
+    };
 
   /* =====================================================
      FIND ORDER
@@ -1297,8 +1290,17 @@ export function MyTicketsPage() {
       );
     };
 
+  /* =====================================================
+     RENDER
+  ===================================================== */
+
   return (
-    <div className="min-h-screen bg-[#090909]">
+    <div
+      className="
+        min-h-screen
+        bg-[#090909]
+      "
+    >
       <Seo
         title={t(
           "tickets.title",
@@ -1310,29 +1312,61 @@ export function MyTicketsPage() {
         noIndex
       />
 
-      <div className="page-shell pb-20 pt-32 sm:pb-24 sm:pt-36">
+      {/* =================================================
+          ESPACEMENT RESPONSIVE CORRIGÉ
+      ================================================= */}
 
+      <div
+        className="
+          page-shell
+
+          pb-12
+          pt-[72px]
+
+          sm:pb-16
+          sm:pt-24
+
+          lg:pb-24
+          lg:pt-32
+        "
+      >
         {/* =================================================
             HERO
         ================================================= */}
 
         <section className="max-w-3xl">
-          <div className="flex items-center gap-3">
+          <div
+            className="
+              flex
+              items-center
+              gap-2.5
+
+              sm:gap-3
+            "
+          >
             <span
               className="
                 grid
-                h-10
-                w-10
+
+                h-9
+                w-9
+
                 place-items-center
-                rounded-[13px]
+
+                rounded-[11px]
+
                 border
                 border-secondary/15
                 bg-secondary/[0.08]
                 text-secondary
+
+                sm:h-10
+                sm:w-10
+                sm:rounded-[13px]
               "
             >
               <Tickets
-                size={19}
+                size={18}
               />
             </span>
 
@@ -1343,12 +1377,20 @@ export function MyTicketsPage() {
 
           <h1
             className="
-              mt-5
+              mt-3
+
               font-title
-              text-[clamp(3rem,6vw,5.4rem)]
+
+              text-[clamp(2.7rem,13vw,4rem)]
+
               uppercase
               leading-[0.84]
-              tracking-[-0.05em]
+
+              sm:mt-4
+              sm:text-[clamp(3rem,8vw,4.5rem)]
+
+              lg:mt-5
+              lg:text-[clamp(3rem,6vw,5.4rem)]
             "
           >
             Mes billets
@@ -1363,12 +1405,21 @@ export function MyTicketsPage() {
           <section
             className="
               relative
-              mt-8
+
+              mt-5
+
               overflow-hidden
-              rounded-[26px]
+
+              rounded-[22px]
+
               border
               border-white/[0.08]
               bg-[#111]
+
+              sm:mt-7
+              sm:rounded-[26px]
+
+              lg:mt-8
             "
           >
             <div
@@ -1385,31 +1436,52 @@ export function MyTicketsPage() {
                 relative
                 flex
                 flex-col
-                gap-5
-                p-5
+
+                gap-4
+
+                p-4
+
                 sm:flex-row
                 sm:items-center
                 sm:justify-between
+                sm:gap-5
                 sm:p-6
               "
             >
-              <div className="flex items-center gap-4">
+              <div
+                className="
+                  flex
+                  items-center
+
+                  gap-3
+
+                  sm:gap-4
+                "
+              >
                 <span
                   className="
                     grid
-                    h-14
-                    w-14
+
+                    h-12
+                    w-12
+
                     shrink-0
                     place-items-center
-                    rounded-[17px]
+
+                    rounded-[15px]
+
                     border
                     border-secondary/15
                     bg-secondary/[0.08]
                     text-secondary
+
+                    sm:h-14
+                    sm:w-14
+                    sm:rounded-[17px]
                   "
                 >
                   <UserRound
-                    size={23}
+                    size={21}
                   />
                 </span>
 
@@ -1417,10 +1489,12 @@ export function MyTicketsPage() {
                   <span
                     className="
                       font-subtitle
-                      text-[8px]
+                      text-[7px]
                       uppercase
                       tracking-[0.14em]
                       text-secondary
+
+                      sm:text-[8px]
                     "
                   >
                     Ton espace B4F
@@ -1430,10 +1504,14 @@ export function MyTicketsPage() {
                     className="
                       mt-1
                       font-title
-                      text-[22px]
+
+                      text-[19px]
+
                       uppercase
                       leading-none
                       text-white
+
+                      sm:text-[22px]
                     "
                   >
                     Tes billets.
@@ -1442,18 +1520,18 @@ export function MyTicketsPage() {
 
                   <p
                     className="
-                      mt-2
+                      mt-1.5
                       max-w-xl
                       font-body
-                      text-[11px]
+                      text-[10px]
                       leading-5
                       text-white/35
+
+                      sm:mt-2
+                      sm:text-[11px]
                     "
                   >
-                    Connecte-toi pour
-                    accéder à tes achats
-                    depuis tous tes
-                    appareils.
+                    Connecte-toi pour accéder à tes achats depuis tous tes appareils.
                   </p>
                 </div>
               </div>
@@ -1468,18 +1546,30 @@ export function MyTicketsPage() {
                 className="
                   group
                   flex
-                  min-h-[46px]
+
+                  min-h-[44px]
+
                   shrink-0
                   items-center
                   justify-center
                   gap-2
-                  rounded-[14px]
+
+                  rounded-[13px]
+
                   bg-secondary
+
                   px-5
+
                   font-subtitle
-                  text-[11px]
+                  text-[10px]
                   text-black
+
                   transition
+
+                  sm:min-h-[46px]
+                  sm:rounded-[14px]
+                  sm:text-[11px]
+
                   hover:brightness-105
                 "
               >
@@ -1503,33 +1593,51 @@ export function MyTicketsPage() {
 
         <div
           className="
-            mt-8
+            mt-5
             grid
-            gap-7
+
+            gap-5
+
+            sm:mt-7
+            sm:gap-6
+
+            lg:mt-8
             lg:grid-cols-[minmax(0,1fr)_340px]
             lg:items-start
+            lg:gap-7
           "
         >
-
           {/* =================================================
               ORDERS
           ================================================= */}
 
           <section className="min-w-0">
-
             {/* LOADING */}
+
             {ordersQuery.isPending &&
             !demoMode ? (
               <div
                 className="
                   grid
-                  min-h-[360px]
+
+                  min-h-[280px]
+
                   place-items-center
-                  rounded-[28px]
+
+                  rounded-[22px]
+
                   border
                   border-white/[0.07]
                   bg-[#111]
-                  p-8
+
+                  p-6
+
+                  sm:min-h-[320px]
+                  sm:rounded-[26px]
+                  sm:p-8
+
+                  lg:min-h-[360px]
+                  lg:rounded-[28px]
                 "
               >
                 <div className="text-center">
@@ -1537,20 +1645,38 @@ export function MyTicketsPage() {
                     className="
                       mx-auto
                       grid
-                      h-14
-                      w-14
+
+                      h-12
+                      w-12
+
                       place-items-center
                       rounded-full
                       bg-secondary/[0.08]
+
+                      sm:h-14
+                      sm:w-14
                     "
                   >
                     <LoaderCircle
-                      size={25}
-                      className="animate-spin text-secondary"
+                      size={24}
+                      className="
+                        animate-spin
+                        text-secondary
+                      "
                     />
                   </span>
 
-                  <p className="mt-5 font-body text-sm text-white/35">
+                  <p
+                    className="
+                      mt-4
+                      font-body
+                      text-[13px]
+                      text-white/35
+
+                      sm:mt-5
+                      sm:text-sm
+                    "
+                  >
                     Chargement de tes billets…
                   </p>
                 </div>
@@ -1558,21 +1684,49 @@ export function MyTicketsPage() {
             ) : ordersQuery.error &&
               !demoMode ? (
               /* ERROR */
+
               <div
                 className="
-                  rounded-[28px]
+                  rounded-[22px]
+
                   border
                   border-red-500/[0.15]
                   bg-red-500/[0.04]
-                  p-8
+
+                  p-6
+
                   text-center
+
+                  sm:rounded-[26px]
+                  sm:p-8
+
+                  lg:rounded-[28px]
                 "
               >
-                <h2 className="font-title text-2xl uppercase">
+                <h2
+                  className="
+                    font-title
+                    text-xl
+                    uppercase
+
+                    sm:text-2xl
+                  "
+                >
                   Chargement impossible
                 </h2>
 
-                <p className="mt-3 font-body text-sm leading-6 text-white/40">
+                <p
+                  className="
+                    mt-2
+                    font-body
+                    text-[13px]
+                    leading-6
+                    text-white/40
+
+                    sm:mt-3
+                    sm:text-sm
+                  "
+                >
                   {ordersQuery.error instanceof
                   Error
                     ? ordersQuery
@@ -1586,7 +1740,12 @@ export function MyTicketsPage() {
                   onClick={() =>
                     void ordersQuery.refetch()
                   }
-                  className="secondary-button mt-6"
+                  className="
+                    secondary-button
+                    mt-5
+
+                    sm:mt-6
+                  "
                 >
                   <RefreshCw
                     size={17}
@@ -1598,17 +1757,31 @@ export function MyTicketsPage() {
             ) : visibleOrders.length ===
               0 ? (
               /* EMPTY */
+
               <div
                 className="
                   grid
-                  min-h-[400px]
+
+                  min-h-[320px]
+
                   place-items-center
-                  rounded-[28px]
+
+                  rounded-[22px]
+
                   border
                   border-white/[0.07]
                   bg-[#111]
-                  p-8
+
+                  p-6
+
                   text-center
+
+                  sm:min-h-[360px]
+                  sm:rounded-[26px]
+                  sm:p-8
+
+                  lg:min-h-[400px]
+                  lg:rounded-[28px]
                 "
               >
                 <div className="max-w-md">
@@ -1616,47 +1789,90 @@ export function MyTicketsPage() {
                     className="
                       mx-auto
                       grid
-                      h-20
-                      w-20
+
+                      h-16
+                      w-16
+
                       place-items-center
-                      rounded-[24px]
+
+                      rounded-[20px]
+
                       border
                       border-white/[0.07]
                       bg-[#171717]
+
+                      sm:h-20
+                      sm:w-20
+                      sm:rounded-[24px]
                     "
                   >
                     <Ticket
                       className="text-white/18"
-                      size={36}
+                      size={32}
                     />
                   </span>
 
-                  <h2 className="mt-6 font-title text-3xl uppercase">
+                  <h2
+                    className="
+                      mt-5
+                      font-title
+
+                      text-2xl
+
+                      uppercase
+
+                      sm:mt-6
+                      sm:text-3xl
+                    "
+                  >
                     Aucun billet
                   </h2>
 
-                  <p className="mx-auto mt-3 font-body text-sm leading-6 text-white/35">
-                    Tes prochains billets
-                    apparaîtront ici après
-                    ton achat.
+                  <p
+                    className="
+                      mx-auto
+                      mt-2
+                      font-body
+                      text-[13px]
+                      leading-6
+                      text-white/35
+
+                      sm:mt-3
+                      sm:text-sm
+                    "
+                  >
+                    Tes prochains billets apparaîtront ici après ton achat.
                   </p>
 
                   <Link
                     to="/events"
                     className="
-                      mt-6
+                      mt-5
                       inline-flex
-                      min-h-[48px]
+
+                      min-h-[46px]
+
                       items-center
                       justify-center
                       gap-2
-                      rounded-[14px]
+
+                      rounded-[13px]
+
                       bg-secondary
+
                       px-5
+
                       font-subtitle
-                      text-xs
+                      text-[11px]
                       text-black
+
                       transition
+
+                      sm:mt-6
+                      sm:min-h-[48px]
+                      sm:rounded-[14px]
+                      sm:text-xs
+
                       hover:brightness-105
                     "
                   >
@@ -1673,7 +1889,13 @@ export function MyTicketsPage() {
                   ORDER LIST
               ================================================= */
 
-              <div className="space-y-3">
+              <div
+                className="
+                  space-y-2.5
+
+                  sm:space-y-3
+                "
+              >
                 {visibleOrders.map(
                   (
                     order,
@@ -1698,12 +1920,18 @@ export function MyTicketsPage() {
                         className="
                           group
                           overflow-hidden
-                          rounded-[24px]
+
+                          rounded-[20px]
+
                           border
                           border-white/[0.07]
                           bg-[#111]
+
                           transition-all
                           duration-300
+
+                          sm:rounded-[24px]
+
                           hover:border-white/[0.13]
                           hover:bg-[#131313]
                         "
@@ -1719,32 +1947,40 @@ export function MyTicketsPage() {
                             flex
                             w-full
                             flex-col
-                            gap-4
-                            p-4
+
+                            gap-3
+
+                            p-3
+
                             text-left
+
                             sm:flex-row
                             sm:items-center
+                            sm:gap-4
                             sm:p-5
                           "
                         >
-
-                          {/* =================================================
-                              IMAGE EVENT / PACK
-                          ================================================= */}
+                          {/* IMAGE */}
 
                           <div
                             className="
                               relative
-                              h-[115px]
+
+                              h-[105px]
+
                               w-full
                               shrink-0
                               overflow-hidden
-                              rounded-[17px]
+
+                              rounded-[14px]
+
                               border
                               border-white/[0.06]
                               bg-[#171717]
+
                               sm:h-[96px]
                               sm:w-[128px]
+                              sm:rounded-[17px]
                             "
                           >
                             {image ? (
@@ -1761,6 +1997,7 @@ export function MyTicketsPage() {
                                     object-cover
                                     transition-transform
                                     duration-500
+
                                     group-hover:scale-[1.05]
                                   "
                                 />
@@ -1797,18 +2034,23 @@ export function MyTicketsPage() {
                             )}
                           </div>
 
-                          {/* =================================================
-                              INFOS
-                          ================================================= */}
+                          {/* INFOS */}
 
-                          <div className="min-w-0 flex-1">
+                          <div
+                            className="
+                              min-w-0
+                              flex-1
+                            "
+                          >
                             <span
                               className="
                                 font-subtitle
-                                text-[8px]
+                                text-[7px]
                                 uppercase
                                 tracking-[0.13em]
                                 text-white/25
+
+                                sm:text-[8px]
                               "
                             >
                               Commande
@@ -1816,12 +2058,15 @@ export function MyTicketsPage() {
 
                             <strong
                               className="
-                                mt-1
+                                mt-0.5
                                 block
                                 truncate
                                 font-subtitle
-                                text-sm
+                                text-[13px]
                                 text-white/85
+
+                                sm:mt-1
+                                sm:text-sm
                               "
                             >
                               {
@@ -1831,18 +2076,29 @@ export function MyTicketsPage() {
 
                             <div
                               className="
-                                mt-2.5
+                                mt-2
                                 flex
                                 flex-wrap
                                 items-center
-                                gap-x-3
-                                gap-y-2
+                                gap-x-2.5
+                                gap-y-1.5
                                 font-body
-                                text-[10px]
+                                text-[9px]
                                 text-white/30
+
+                                sm:mt-2.5
+                                sm:gap-x-3
+                                sm:gap-y-2
+                                sm:text-[10px]
                               "
                             >
-                              <span className="flex items-center gap-1.5">
+                              <span
+                                className="
+                                  flex
+                                  items-center
+                                  gap-1.5
+                                "
+                              >
                                 <Tickets
                                   size={12}
                                   className="shrink-0"
@@ -1864,7 +2120,14 @@ export function MyTicketsPage() {
 
                               {dateLabel && (
                                 <>
-                                  <span className="h-1 w-1 rounded-full bg-white/15" />
+                                  <span
+                                    className="
+                                      h-1
+                                      w-1
+                                      rounded-full
+                                      bg-white/15
+                                    "
+                                  />
 
                                   <span
                                     className="
@@ -1890,9 +2153,7 @@ export function MyTicketsPage() {
                             </div>
                           </div>
 
-                          {/* =================================================
-                              PRICE
-                          ================================================= */}
+                          {/* PRICE */}
 
                           <div
                             className="
@@ -1900,10 +2161,15 @@ export function MyTicketsPage() {
                               shrink-0
                               items-center
                               justify-between
-                              gap-5
+
+                              gap-4
+
                               border-t
                               border-white/[0.06]
-                              pt-4
+
+                              pt-3
+
+                              sm:gap-5
                               sm:border-l
                               sm:border-t-0
                               sm:pl-5
@@ -1915,10 +2181,12 @@ export function MyTicketsPage() {
                                 className="
                                   block
                                   font-body
-                                  text-[8px]
+                                  text-[7px]
                                   uppercase
                                   tracking-[0.08em]
                                   text-white/22
+
+                                  sm:text-[8px]
                                 "
                               >
                                 Total
@@ -1929,8 +2197,12 @@ export function MyTicketsPage() {
                                   mt-0.5
                                   block
                                   font-title
-                                  text-2xl
+
+                                  text-xl
+
                                   text-white/90
+
+                                  sm:text-2xl
                                 "
                               >
                                 {formatMoney(
@@ -1943,21 +2215,28 @@ export function MyTicketsPage() {
                             <span
                               className="
                                 grid
-                                h-11
-                                w-11
+
+                                h-10
+                                w-10
+
                                 shrink-0
                                 place-items-center
                                 rounded-full
                                 bg-secondary
                                 text-black
+
                                 transition-all
                                 duration-300
+
+                                sm:h-11
+                                sm:w-11
+
                                 group-hover:translate-x-0.5
                                 group-hover:brightness-105
                               "
                             >
                               <ArrowRight
-                                size={18}
+                                size={17}
                               />
                             </span>
                           </div>
@@ -1977,31 +2256,51 @@ export function MyTicketsPage() {
           <aside
             className="
               h-fit
-              rounded-[26px]
+
+              rounded-[22px]
+
               border
               border-white/[0.07]
               bg-[#111]
-              p-5
+
+              p-4
+
+              sm:rounded-[26px]
               sm:p-6
+
               lg:sticky
               lg:top-28
             "
           >
+            {/* HEADER */}
 
-            {/* PETIT HEADER SEULEMENT */}
-            <div className="flex items-center gap-3">
+            <div
+              className="
+                flex
+                items-center
+                gap-3
+              "
+            >
               <span
                 className="
                   grid
-                  h-10
-                  w-10
+
+                  h-9
+                  w-9
+
                   shrink-0
                   place-items-center
-                  rounded-[12px]
+
+                  rounded-[11px]
+
                   border
                   border-secondary/15
                   bg-secondary/[0.07]
                   text-secondary
+
+                  sm:h-10
+                  sm:w-10
+                  sm:rounded-[12px]
                 "
               >
                 <Search
@@ -2024,11 +2323,16 @@ export function MyTicketsPage() {
 
             <h2
               className="
-                mt-5
+                mt-4
                 font-title
-                text-[24px]
+
+                text-[22px]
+
                 uppercase
                 leading-[0.92]
+
+                sm:mt-5
+                sm:text-[24px]
               "
             >
               Retrouver
@@ -2036,8 +2340,13 @@ export function MyTicketsPage() {
               une commande
             </h2>
 
-            
-            <div className="mt-2">
+            <div
+              className="
+                mt-3
+
+                sm:mt-4
+              "
+            >
               <label
                 className="
                   font-subtitle
@@ -2054,14 +2363,24 @@ export function MyTicketsPage() {
                 className={`
                   mt-2
                   flex
-                  min-h-[52px]
+
+                  min-h-[50px]
+
                   items-center
                   gap-3
-                  rounded-[15px]
+
+                  rounded-[14px]
+
                   border
                   bg-[#171717]
-                  px-4
+
+                  px-3.5
+
                   transition
+
+                  sm:min-h-[52px]
+                  sm:rounded-[15px]
+                  sm:px-4
 
                   ${
                     error
@@ -2072,7 +2391,10 @@ export function MyTicketsPage() {
               >
                 <Search
                   size={16}
-                  className="shrink-0 text-white/20"
+                  className="
+                    shrink-0
+                    text-white/20
+                  "
                 />
 
                 <input
@@ -2114,8 +2436,10 @@ export function MyTicketsPage() {
                     text-white/80
                     outline-none
                     ring-0
+
                     placeholder:normal-case
                     placeholder:text-white/18
+
                     focus:outline-none
                     focus:ring-0
                   "
@@ -2124,6 +2448,7 @@ export function MyTicketsPage() {
               </div>
 
               {/* ERROR */}
+
               {error && (
                 <p
                   className="
@@ -2134,11 +2459,14 @@ export function MyTicketsPage() {
                     text-red-300/80
                   "
                 >
-                  {error}
+                  {
+                    error
+                  }
                 </p>
               )}
 
               {/* BUTTON */}
+
               <button
                 type="button"
                 onClick={
@@ -2146,20 +2474,34 @@ export function MyTicketsPage() {
                 }
                 className="
                   group
+
                   mt-3
+
                   flex
-                  min-h-[50px]
+
+                  min-h-[48px]
+
                   w-full
                   items-center
                   justify-center
                   gap-2.5
-                  rounded-[14px]
+
+                  rounded-[13px]
+
                   bg-secondary
+
                   px-5
+
                   font-subtitle
-                  text-xs
+                  text-[11px]
                   text-black
+
                   transition
+
+                  sm:min-h-[50px]
+                  sm:rounded-[14px]
+                  sm:text-xs
+
                   hover:brightness-105
                 "
               >

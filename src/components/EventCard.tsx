@@ -388,7 +388,6 @@ export function EventCard({
                 text-[1.65rem]
                 uppercase
                 leading-[0.92]
-                tracking-[-0.035em]
                 text-white/95
                 transition-colors
                 duration-300

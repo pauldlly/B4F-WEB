@@ -48,6 +48,7 @@ export type PublicEvent = {
   address: string | null;
   type: string | null;
   description: string | null;
+  miniDescription: string | null;
   eventDate: string | null;
   startTime: string | null;
   endTime: string | null;
