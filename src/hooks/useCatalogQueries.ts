@@ -1,98 +1,218 @@
 import {
   useInfiniteQuery,
-  useQuery
+  useQuery,
 } from "@tanstack/react-query";
 
 import {
   getEventDetail,
   getEventsPage,
   getPackDetail,
-  getPacksPage
+  getPacksPage,
 } from "../services/catalog";
-import type { CatalogFilters, PaginatedResult, PublicEvent, PublicPack } from "../types";
+
+import type {
+  CatalogFilters,
+  PaginatedResult,
+  PublicEvent,
+  PublicPack,
+} from "../types";
 
 export const catalogKeys = {
   events: (filters: CatalogFilters) => [
     "public-events",
-    filters
+    filters,
   ],
+
   event: (eventId: number) => [
     "public-event",
-    eventId
+    eventId,
   ],
+
   packs: (filters: CatalogFilters) => [
     "public-packs",
-    filters
+    filters,
   ],
+
   pack: (packId: string) => [
     "public-pack",
-    packId
-  ]
+    packId,
+  ],
 };
 
 export function useEventsInfinite(
   filters: CatalogFilters,
-  enabled = true
+  enabled = true,
 ) {
   return useInfiniteQuery({
-    queryKey: catalogKeys.events(filters),
-    queryFn: ({ pageParam }: { pageParam: number }) =>
+    queryKey:
+      catalogKeys.events(
+        filters,
+      ),
+
+    queryFn: ({
+      pageParam,
+    }: {
+      pageParam: number;
+    }) =>
       getEventsPage({
-        offset: pageParam,
-        filters
+        offset:
+          pageParam,
+
+        filters,
       }),
-    initialPageParam: 0,
-    getNextPageParam: (page: PaginatedResult<PublicEvent>) =>
-      page.nextOffset ?? undefined,
+
+    initialPageParam:
+      0,
+
+    getNextPageParam: (
+      page: PaginatedResult<PublicEvent>,
+    ) =>
+      page.nextOffset ??
+      undefined,
+
     enabled,
-    staleTime: 60_000,
-    gcTime: 10 * 60_000,
-    refetchOnWindowFocus: false
+
+    /*
+     * Les changements faits dans Supabase
+     * (dont is_visible_only_in_app)
+     * doivent être relus au rechargement.
+     */
+    staleTime:
+      0,
+
+    gcTime:
+      10 * 60_000,
+
+    refetchOnMount:
+      "always",
+
+    refetchOnReconnect:
+      true,
+
+    refetchOnWindowFocus:
+      true,
   });
 }
 
 export function usePacksInfinite(
   filters: CatalogFilters,
-  enabled = true
+  enabled = true,
 ) {
   return useInfiniteQuery({
-    queryKey: catalogKeys.packs(filters),
-    queryFn: ({ pageParam }: { pageParam: number }) =>
+    queryKey:
+      catalogKeys.packs(
+        filters,
+      ),
+
+    queryFn: ({
+      pageParam,
+    }: {
+      pageParam: number;
+    }) =>
       getPacksPage({
-        offset: pageParam,
-        filters
+        offset:
+          pageParam,
+
+        filters,
       }),
-    initialPageParam: 0,
-    getNextPageParam: (page: PaginatedResult<PublicPack>) =>
-      page.nextOffset ?? undefined,
+
+    initialPageParam:
+      0,
+
+    getNextPageParam: (
+      page: PaginatedResult<PublicPack>,
+    ) =>
+      page.nextOffset ??
+      undefined,
+
     enabled,
-    staleTime: 60_000,
-    gcTime: 10 * 60_000,
-    refetchOnWindowFocus: false
+
+    staleTime:
+      0,
+
+    gcTime:
+      10 * 60_000,
+
+    refetchOnMount:
+      "always",
+
+    refetchOnReconnect:
+      true,
+
+    refetchOnWindowFocus:
+      true,
   });
 }
 
 export function useEventDetail(
-  eventId: number
+  eventId: number,
 ) {
   return useQuery({
-    queryKey: catalogKeys.event(eventId),
-    queryFn: () => getEventDetail(eventId),
+    queryKey:
+      catalogKeys.event(
+        eventId,
+      ),
+
+    queryFn: () =>
+      getEventDetail(
+        eventId,
+      ),
+
     enabled:
-      Number.isFinite(eventId) && eventId > 0,
-    staleTime: 60_000,
-    gcTime: 10 * 60_000
+      Number.isFinite(
+        eventId,
+      ) &&
+      eventId >
+        0,
+
+    staleTime:
+      0,
+
+    gcTime:
+      10 * 60_000,
+
+    refetchOnMount:
+      "always",
+
+    refetchOnReconnect:
+      true,
+
+    refetchOnWindowFocus:
+      true,
   });
 }
 
 export function usePackDetail(
-  packId: string
+  packId: string,
 ) {
   return useQuery({
-    queryKey: catalogKeys.pack(packId),
-    queryFn: () => getPackDetail(packId),
-    enabled: packId.length > 0,
-    staleTime: 60_000,
-    gcTime: 10 * 60_000
+    queryKey:
+      catalogKeys.pack(
+        packId,
+      ),
+
+    queryFn: () =>
+      getPackDetail(
+        packId,
+      ),
+
+    enabled:
+      packId.length >
+      0,
+
+    staleTime:
+      0,
+
+    gcTime:
+      10 * 60_000,
+
+    refetchOnMount:
+      "always",
+
+    refetchOnReconnect:
+      true,
+
+    refetchOnWindowFocus:
+      true,
   });
 }

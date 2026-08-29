@@ -90,6 +90,10 @@ type EventRow = {
   is_visible_only_in_packs:
     | boolean
     | null;
+
+  is_visible_only_in_app:
+    | boolean
+    | null;
 };
 
 type PackRow = {
@@ -151,6 +155,10 @@ type PackRow = {
 
   created_at:
     | string
+    | null;
+
+  is_visible_only_in_app:
+    | boolean
     | null;
 };
 
@@ -607,7 +615,8 @@ export async function getEventsPage({
           capacity_men_init,
           soldout,
           status,
-          is_visible_only_in_packs
+          is_visible_only_in_packs,
+          is_visible_only_in_app
         `,
       )
       .eq(
@@ -616,6 +625,10 @@ export async function getEventsPage({
       )
       .eq(
         "is_visible_only_in_packs",
+        false,
+      )
+      .eq(
+        "is_visible_only_in_app",
         false,
       );
 
@@ -665,6 +678,13 @@ export async function getEventsPage({
 
   const items =
     rawRows
+      .filter(
+        (
+          row,
+        ) =>
+          row.is_visible_only_in_app !==
+          true,
+      )
       .map(
         (
           row,
@@ -773,7 +793,8 @@ export async function getEventDetail(
           capacity_men_init,
           soldout,
           status,
-          is_visible_only_in_packs
+          is_visible_only_in_packs,
+          is_visible_only_in_app
         `,
       )
       .eq(
@@ -783,6 +804,10 @@ export async function getEventDetail(
       .eq(
         "status",
         "active",
+      )
+      .eq(
+        "is_visible_only_in_app",
+        false,
       )
       .maybeSingle();
 
@@ -928,8 +953,24 @@ async function hydratePacks(
     return [];
   }
 
+  const webPackRows =
+    packRows.filter(
+      (
+        pack,
+      ) =>
+        pack.is_visible_only_in_app !==
+        true,
+    );
+
+  if (
+    webPackRows.length ===
+    0
+  ) {
+    return [];
+  }
+
   const packIds =
-    packRows.map(
+    webPackRows.map(
       (
         pack,
       ) =>
@@ -1056,6 +1097,10 @@ async function hydratePacks(
         .eq(
           "status",
           "active",
+        )
+        .eq(
+          "is_visible_only_in_app",
+          false,
         );
 
     if (
@@ -1442,7 +1487,7 @@ async function hydratePacks(
      BUILD PACKS
   ===================================================== */
 
-  return packRows
+  return webPackRows
     .map(
       (
         packRow,
@@ -1871,12 +1916,17 @@ export async function getPacksPage({
           color_hex,
           soldout,
           status,
-          created_at
+          created_at,
+          is_visible_only_in_app
         `,
       )
       .eq(
         "status",
         "active",
+      )
+      .eq(
+        "is_visible_only_in_app",
+        false,
       )
       .order(
         "created_at",
@@ -1997,7 +2047,8 @@ export async function getPackDetail(
           color_hex,
           soldout,
           status,
-          created_at
+          created_at,
+          is_visible_only_in_app
         `,
       )
       .eq(
@@ -2007,6 +2058,10 @@ export async function getPackDetail(
       .eq(
         "status",
         "active",
+      )
+      .eq(
+        "is_visible_only_in_app",
+        false,
       )
       .maybeSingle();
 
