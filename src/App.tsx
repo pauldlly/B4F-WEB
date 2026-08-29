@@ -18,10 +18,6 @@ import { PageSkeleton } from "./components/Skeletons";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { WhatsAppAssistant } from "./components/WhatsAppAssistant";
 
-/* =========================================================
-   PAGES
-========================================================= */
-
 const HomePage =
   lazy(() =>
     import(
@@ -134,6 +130,20 @@ const PackPage =
     ),
   );
 
+const AffiliatePage =
+  lazy(() =>
+    import(
+      "./pages/AffiliatePage"
+    ).then(
+      (
+        module,
+      ) => ({
+        default:
+          module.AffiliatePage,
+      }),
+    ),
+  );
+
 const CheckoutPage =
   lazy(() =>
     import(
@@ -218,9 +228,7 @@ const AuthCallbackPage =
     ),
   );
 
-/* =========================================================
-   PAGES LÉGALES
-========================================================= */
+/* Pages légales */
 
 const TermsPage =
   lazy(() =>
@@ -292,19 +300,9 @@ const NotFoundPage =
     ),
   );
 
-/* =========================================================
-   APP
-========================================================= */
-
 export default function App() {
   return (
-    <div
-      className="
-        min-h-screen
-        bg-ink
-        text-white
-      "
-    >
+    <div className="min-h-screen bg-ink text-white">
       <ScrollToTop />
 
       <CatalogRealtimeSync />
@@ -318,9 +316,7 @@ export default function App() {
           }
         >
           <Routes>
-            {/* =================================================
-                HOME
-            ================================================= */}
+            {/* Pages principales */}
 
             <Route
               path="/"
@@ -328,10 +324,6 @@ export default function App() {
                 <HomePage />
               }
             />
-
-            {/* =================================================
-                CATALOGUE
-            ================================================= */}
 
             <Route
               path="/events"
@@ -346,10 +338,6 @@ export default function App() {
                 <PacksPage />
               }
             />
-
-            {/* =================================================
-                AUTRES PAGES
-            ================================================= */}
 
             <Route
               path="/about"
@@ -373,56 +361,16 @@ export default function App() {
             />
 
             {/* =================================================
-                ÉVÉNEMENT NORMAL
-
-                Exemple :
-                /event/66
+                ANCIENS LIENS PROMOTEUR
+                Ils restent compatibles.
             ================================================= */}
 
             <Route
-              path="/event/:eventId"
+              path="/:promoterReference/event/:eventId"
               element={
                 <EventPage />
               }
             />
-
-            {/* =================================================
-                LIEN AFFILIÉ ÉVÉNEMENT
-
-                Exemple :
-                /paul-dailly:66
-
-                affiliate =
-                "paul-dailly:66"
-
-                EventPage extrait :
-                promoter = paul-dailly
-                eventId = 66
-            ================================================= */}
-
-            <Route
-              path="/:affiliate"
-              element={
-                <EventPage />
-              }
-            />
-
-            {/* =================================================
-                PACK NORMAL
-            ================================================= */}
-
-            <Route
-              path="/pack/:packId"
-              element={
-                <PackPage />
-              }
-            />
-
-            {/* =================================================
-                ANCIEN LIEN PACK PROMOTEUR
-
-                Conservé pour le moment.
-            ================================================= */}
 
             <Route
               path="/:promoterReference/pack/:packId"
@@ -432,8 +380,24 @@ export default function App() {
             />
 
             {/* =================================================
-                PAIEMENT
+                URLS NORMALES
             ================================================= */}
+
+            <Route
+              path="/event/:eventId"
+              element={
+                <EventPage />
+              }
+            />
+
+            <Route
+              path="/pack/:packId"
+              element={
+                <PackPage />
+              }
+            />
+
+            {/* Paiement */}
 
             <Route
               path="/checkout"
@@ -449,9 +413,7 @@ export default function App() {
               }
             />
 
-            {/* =================================================
-                BILLETS / COMMANDES
-            ================================================= */}
+            {/* Billets / commandes */}
 
             <Route
               path="/mes-billets"
@@ -467,9 +429,7 @@ export default function App() {
               }
             />
 
-            {/* =================================================
-                COMPTE
-            ================================================= */}
+            {/* Compte */}
 
             <Route
               path="/compte"
@@ -485,9 +445,7 @@ export default function App() {
               }
             />
 
-            {/* =================================================
-                PAGES LÉGALES
-            ================================================= */}
+            {/* Pages légales */}
 
             <Route
               path="/cgv"
@@ -518,9 +476,26 @@ export default function App() {
             />
 
             {/* =================================================
-                404
-                TOUJOURS EN DERNIER
+                NOUVEAUX LIENS D'AFFILIATION COMPACTS
+
+                Générique :
+                /paul-dailly
+
+                Event :
+                /paul-dailly:66
+
+                Pack :
+                /paul-dailly:UUID_PACK
             ================================================= */}
+
+            <Route
+              path="/:affiliate"
+              element={
+                <AffiliatePage />
+              }
+            />
+
+            {/* 404 — toujours en dernier */}
 
             <Route
               path="*"

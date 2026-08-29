@@ -790,7 +790,8 @@ export async function getEventDetail(
           soldout,
           status,
           is_visible_only_in_packs,
-          is_visible_only_in_app        `,
+          is_visible_only_in_app
+        `,
       )
       .eq(
         "id",
@@ -959,6 +960,9 @@ async function hydratePacks(
 
   includeExtras:
     boolean,
+
+  allowAppOnly =
+    false,
 ): Promise<
   PublicPack[]
 > {
@@ -971,13 +975,15 @@ async function hydratePacks(
   }
 
   const webPackRows =
-    packRows.filter(
-      (
-        pack,
-      ) =>
-        pack.is_visible_only_in_app !==
-        true,
-    );
+    allowAppOnly
+      ? packRows
+      : packRows.filter(
+          (
+            pack,
+          ) =>
+            pack.is_visible_only_in_app !==
+            true,
+        );
 
   if (
     webPackRows.length ===
@@ -1074,11 +1080,8 @@ async function hydratePacks(
     eventIds.length >
     0
   ) {
-    const {
-      data,
-      error,
-    } =
-      await supabase
+    let eventQuery =
+      supabase
         .from(
           "Event",
         )
@@ -1104,7 +1107,8 @@ async function hydratePacks(
             capacity_men_init,
             soldout,
             status,
-            is_visible_only_in_packs
+            is_visible_only_in_packs,
+            is_visible_only_in_app
           `,
         )
         .in(
@@ -1114,11 +1118,23 @@ async function hydratePacks(
         .eq(
           "status",
           "active",
-        )
-        .eq(
+        );
+
+    if (
+      !allowAppOnly
+    ) {
+      eventQuery =
+        eventQuery.eq(
           "is_visible_only_in_app",
           false,
         );
+    }
+
+    const {
+      data,
+      error,
+    } =
+      await eventQuery;
 
     if (
       error
@@ -2022,6 +2038,7 @@ export async function getPacksPage({
 
 export async function getPackDetail(
   packId: string,
+  allowAppOnly = false,
 ): Promise<
   PublicPack | null
 > {
@@ -2040,11 +2057,8 @@ export async function getPackDetail(
     );
   }
 
-  const {
-    data,
-    error,
-  } =
-    await supabase
+  let packQuery =
+    supabase
       .from(
         "Pack",
       )
@@ -2075,11 +2089,23 @@ export async function getPackDetail(
       .eq(
         "status",
         "active",
-      )
-      .eq(
+      );
+
+  if (
+    !allowAppOnly
+  ) {
+    packQuery =
+      packQuery.eq(
         "is_visible_only_in_app",
         false,
-      )
+      );
+  }
+
+  const {
+    data,
+    error,
+  } =
+    await packQuery
       .maybeSingle();
 
   if (
@@ -2100,6 +2126,7 @@ export async function getPackDetail(
         data as PackRow,
       ],
       true,
+      allowAppOnly,
     );
 
   return (

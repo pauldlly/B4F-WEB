@@ -10,6 +10,10 @@ import {
   getPacksPage,
 } from "../services/catalog";
 
+import {
+  hasStoredAffiliateAccess,
+} from "../lib/affiliate";
+
 import type {
   CatalogFilters,
   PaginatedResult,
@@ -39,9 +43,15 @@ export const catalogKeys = {
     filters,
   ],
 
-  pack: (packId: string) => [
+  pack: (
+    packId: string,
+    allowAppOnly = false,
+  ) => [
     "public-pack",
     packId,
+    allowAppOnly
+      ? "affiliate"
+      : "public",
   ],
 };
 
@@ -150,21 +160,31 @@ export function usePacksInfinite(
   });
 }
 
+
 export function useEventDetail(
   eventId: number,
   allowAppOnly = false,
 ) {
+  const effectiveAllowAppOnly =
+    allowAppOnly ||
+    hasStoredAffiliateAccess(
+      "event",
+      String(
+        eventId,
+      ),
+    );
+
   return useQuery({
     queryKey:
       catalogKeys.event(
         eventId,
-        allowAppOnly,
+        effectiveAllowAppOnly,
       ),
 
     queryFn: () =>
       getEventDetail(
         eventId,
-        allowAppOnly,
+        effectiveAllowAppOnly,
       ),
 
     enabled:
@@ -193,16 +213,26 @@ export function useEventDetail(
 
 export function usePackDetail(
   packId: string,
+  allowAppOnly = false,
 ) {
+  const effectiveAllowAppOnly =
+    allowAppOnly ||
+    hasStoredAffiliateAccess(
+      "pack",
+      packId,
+    );
+
   return useQuery({
     queryKey:
       catalogKeys.pack(
         packId,
+        effectiveAllowAppOnly,
       ),
 
     queryFn: () =>
       getPackDetail(
         packId,
+        effectiveAllowAppOnly,
       ),
 
     enabled:

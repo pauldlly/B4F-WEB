@@ -55,9 +55,23 @@ import type {
    FRAIS
 ========================================================= */
 
-const SERVICE_FEE_RATE = 0.025;
-const SERVICE_FLAT_FEE = 1.49;
-const SERVICE_FEE_THRESHOLD = 60;
+/*
+ * FRAIS DE PAIEMENT UNIQUEMENT.
+ *
+ * Pas de 0,50 € par ticket.
+ *
+ * <= 60 € : 1,49 €
+ * > 60 €  : 2,5 %
+ */
+
+const SERVICE_FEE_RATE =
+  0.025;
+
+const SERVICE_FLAT_FEE =
+  1.49;
+
+const SERVICE_FEE_THRESHOLD =
+  60;
 
 /* =========================================================
    CUSTOMER
@@ -502,10 +516,17 @@ function formatEventDate(
   return new Intl.DateTimeFormat(
     locale || "fr-FR",
     {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
+      weekday:
+        "short",
+
+      day:
+        "numeric",
+
+      month:
+        "short",
+
+      year:
+        "numeric",
     },
   )
     .format(date)
@@ -607,11 +628,21 @@ function getEventIdFromValue(
 
 type QuantityControlProps = {
   value: number;
-  onMinus: () => void;
-  onPlus: () => void;
-  disableMinus?: boolean;
-  disablePlus?: boolean;
-  label?: string;
+
+  onMinus:
+    () => void;
+
+  onPlus:
+    () => void;
+
+  disableMinus?:
+    boolean;
+
+  disablePlus?:
+    boolean;
+
+  label?:
+    string;
 };
 
 function QuantityControl({
@@ -686,7 +717,9 @@ function QuantityControl({
       >
         <Minus
           size={12}
-          strokeWidth={2.5}
+          strokeWidth={
+            2.5
+          }
         />
       </button>
 
@@ -736,7 +769,9 @@ function QuantityControl({
       >
         <Plus
           size={12}
-          strokeWidth={2.5}
+          strokeWidth={
+            2.5
+          }
         />
       </button>
     </div>
@@ -865,7 +900,7 @@ export function CheckoutPage() {
   ]);
 
   /* =====================================================
-     VALIDATION
+     CUSTOMER VALIDATION
   ===================================================== */
 
   const phoneValue =
@@ -894,7 +929,7 @@ export function CheckoutPage() {
     );
 
   /* =====================================================
-     EVENT TICKET COUNT
+     NOMBRE DE BILLETS DU MÊME EVENT
   ===================================================== */
 
   const getEventTicketCount = (
@@ -909,6 +944,8 @@ export function CheckoutPage() {
         total,
         item,
       ) => {
+        /* EVENT SIMPLE */
+
         if (
           item.kind !==
           "pack"
@@ -932,6 +969,8 @@ export function CheckoutPage() {
 
           return total;
         }
+
+        /* PACK */
 
         const containsEvent =
           item.selectedEvents.some(
@@ -969,7 +1008,7 @@ export function CheckoutPage() {
   };
 
   /* =====================================================
-     CLAMP EXTRAS
+     CLAMP OPTIONS / TABLES
   ===================================================== */
 
   const clampAllExtras = (
@@ -999,6 +1038,10 @@ export function CheckoutPage() {
                   ),
                 );
 
+              /*
+               * TABLE :
+               * maximum 1.
+               */
               if (
                 extra.kind ===
                 "table"
@@ -1020,6 +1063,12 @@ export function CheckoutPage() {
                 };
               }
 
+              /*
+               * OPTION :
+               *
+               * Maximum =
+               * nombre de billets du même event.
+               */
               return {
                 ...extra,
 
@@ -1098,7 +1147,7 @@ export function CheckoutPage() {
   };
 
   /* =====================================================
-     TOTALS
+     SOUS-TOTAL
   ===================================================== */
 
   const checkoutSubtotal =
@@ -1122,6 +1171,25 @@ export function CheckoutPage() {
       ],
     );
 
+  /* =====================================================
+     FRAIS
+  ===================================================== */
+
+  /*
+   * Le calcul dépend maintenant
+   * DIRECTEMENT de checkoutSubtotal.
+   *
+   * Donc si :
+   *
+   * - billet ajouté
+   * - billet supprimé
+   * - option ajoutée
+   * - option supprimée
+   * - table ajoutée
+   * - table supprimée
+   *
+   * les frais sont recalculés.
+   */
   const checkoutServiceFee =
     useMemo(
       () =>
@@ -1132,6 +1200,10 @@ export function CheckoutPage() {
         checkoutSubtotal,
       ],
     );
+
+  /* =====================================================
+     TOTAL
+  ===================================================== */
 
   const checkoutTotal =
     useMemo(
@@ -1210,13 +1282,17 @@ export function CheckoutPage() {
       ],
     );
 
+  /* =====================================================
+     CAN SUBMIT
+  ===================================================== */
+
   const canSubmit =
     checkoutItems.length >
       0 &&
     !loading;
 
   /* =====================================================
-     CUSTOMER
+     UPDATE CUSTOMER
   ===================================================== */
 
   const update = (
@@ -1239,6 +1315,10 @@ export function CheckoutPage() {
 
     setError("");
   };
+
+  /* =====================================================
+     PHONE
+  ===================================================== */
 
   const handlePhoneChange = (
     value: string,
@@ -1338,6 +1418,10 @@ export function CheckoutPage() {
             ),
           );
 
+        /* ===============================================
+           IL RESTE DES BILLETS
+        =============================================== */
+
         if (
           nextQuantity >
           0
@@ -1365,10 +1449,27 @@ export function CheckoutPage() {
               },
             ) as typeof current;
 
+          /*
+           * Exemple :
+           *
+           * 3 billets
+           * 3 options
+           *
+           * on retire 1 billet
+           *
+           * =>
+           *
+           * 2 billets
+           * 2 options max
+           */
           return clampAllExtras(
             next,
           );
         }
+
+        /* ===============================================
+           CETTE LIGNE PASSE À 0
+        =============================================== */
 
         const eventId =
           target.eventId;
@@ -1386,6 +1487,12 @@ export function CheckoutPage() {
               key,
           ) as typeof current;
 
+        /*
+         * Si la ligne supprimée était
+         * Femme et qu'une ligne Homme
+         * du même event existe encore,
+         * on transfère les extras.
+         */
         const receiverIndex =
           next.findIndex(
             (
@@ -1501,6 +1608,9 @@ export function CheckoutPage() {
                     )
                   : item.femaleQuantity;
 
+              /*
+               * PLUS AUCUN PACK
+               */
               if (
                 nextMen +
                   nextWomen ===
@@ -1533,7 +1643,7 @@ export function CheckoutPage() {
   };
 
   /* =====================================================
-     EXTRA QUANTITY
+     OPTION / TABLE + / -
   ===================================================== */
 
   const updateExtraQuantity = (
@@ -1591,6 +1701,14 @@ export function CheckoutPage() {
             ),
           );
 
+        /*
+         * TABLE :
+         * max 1.
+         *
+         * OPTION :
+         * max nombre de billets
+         * du même event.
+         */
         const maximum =
           targetExtra.kind ===
           "table"
@@ -1621,7 +1739,7 @@ export function CheckoutPage() {
             extras:
               (
                 item.extras ??
-                  []
+                []
               ).map(
                 (
                   extra,
@@ -1658,6 +1776,8 @@ export function CheckoutPage() {
       true,
     );
 
+    /* CUSTOMER */
+
     if (!user) {
       if (
         !nameValid ||
@@ -1671,6 +1791,8 @@ export function CheckoutPage() {
         return;
       }
     }
+
+    /* CGV */
 
     if (
       !accepted
@@ -1717,6 +1839,14 @@ export function CheckoutPage() {
             }
           : customer;
 
+      /*
+       * Les options à quantité 0
+       * restent visibles dans le checkout
+       * pour pouvoir les remettre avec +.
+       *
+       * Mais on ne les envoie pas
+       * au backend.
+       */
       const cleanCheckoutItems =
         checkoutItems.map(
           (
@@ -1727,7 +1857,7 @@ export function CheckoutPage() {
             extras:
               (
                 item.extras ??
-                  []
+                []
               ).filter(
                 (
                   extra,
@@ -1824,19 +1954,7 @@ export function CheckoutPage() {
     0
   ) {
     return (
-      <div
-        className="
-          page-shell
-          pb-16
-          pt-20
-          text-center
-
-          sm:pb-20
-          sm:pt-24
-
-          lg:pt-32
-        "
-      >
+      <div className="page-shell pb-24 pt-36 text-center">
         <Seo
           title={t(
             "cart.empty",
@@ -1877,14 +1995,7 @@ export function CheckoutPage() {
   ===================================================== */
 
   return (
-    <div
-      className="
-        relative
-        min-h-screen
-        overflow-hidden
-        bg-[#090909]
-      "
-    >
+    <div className="relative min-h-screen overflow-hidden bg-[#090909]">
       <Seo
         title={t(
           "checkout.title",
@@ -1896,53 +2007,15 @@ export function CheckoutPage() {
         noIndex
       />
 
-      <div
-        className="
-          pointer-events-none
-          absolute
-          -left-64
-          top-0
-          h-[520px]
-          w-[520px]
-          rounded-full
-          bg-secondary/[0.04]
-          blur-[160px]
-        "
-      />
+      <div className="pointer-events-none absolute -left-64 top-0 h-[520px] w-[520px] rounded-full bg-secondary/[0.04] blur-[160px]" />
 
-      <div
-        className="
-          pointer-events-none
-          absolute
-          -right-64
-          top-[380px]
-          h-[500px]
-          w-[500px]
-          rounded-full
-          bg-primary/[0.035]
-          blur-[160px]
-        "
-      />
+      <div className="pointer-events-none absolute -right-64 top-[380px] h-[500px] w-[500px] rounded-full bg-primary/[0.035] blur-[160px]" />
 
-      {/* =================================================
-          ESPACEMENT RESPONSIVE CORRIGÉ
-      ================================================= */}
+      <div className="page-shell relative pb-16 pt-28 sm:pb-20 sm:pt-32">
 
-      <div
-        className="
-          page-shell
-          relative
-          pb-12
-          pt-20
-
-          sm:pb-16
-          sm:pt-24
-
-          lg:pb-20
-          lg:pt-28
-        "
-      >
-        {/* HEADER */}
+        {/* =================================================
+            HEADER
+        ================================================= */}
 
         <div>
           <Link
@@ -1971,40 +2044,17 @@ export function CheckoutPage() {
           >
             <ArrowLeft
               size={13}
-              className="
-                transition-transform
-                duration-200
-                group-hover:-translate-x-0.5
-              "
+              className="transition-transform duration-200 group-hover:-translate-x-0.5"
             />
 
             Retour
           </Link>
 
-          <h1
-            className="
-              mt-3
-              font-title
-              text-4xl
-              uppercase
-              leading-[0.87]
-
-              sm:mt-4
-              sm:text-5xl
-            "
-          >
+          <h1 className="mt-4 font-title text-4xl uppercase leading-[0.87] sm:text-5xl">
             Ta commande.
           </h1>
 
-          <p
-            className="
-              mt-1
-              font-body
-              text-sm
-              leading-6
-              text-white/35
-            "
-          >
+          <p className="mt-1 font-body text-sm leading-6 text-white/35">
             Vérifie tes billets, tes options et tes tables avant de payer.
           </p>
         </div>
@@ -2019,98 +2069,42 @@ export function CheckoutPage() {
           }
           noValidate
           className="
-            mt-4
+            mt-6
             grid
-            gap-4
+            gap-6
 
-            sm:mt-5
-            sm:gap-5
-
-            lg:mt-6
             lg:grid-cols-[minmax(0,1fr)_430px]
             lg:items-start
-            lg:gap-6
           "
         >
-          {/* CUSTOMER */}
 
-          <section
-            className="
-              overflow-visible
-              rounded-[28px]
-              border
-              border-white/[0.08]
-              bg-[#111]
-            "
-          >
+          {/* =================================================
+              CUSTOMER
+          ================================================= */}
+
+          <section className="overflow-visible rounded-[28px] border border-white/[0.08] bg-[#111]">
+
             {!user ? (
               <div className="p-5 sm:p-7">
+
                 {/* ACCOUNT */}
 
-                <div
-                  className="
-                    rounded-[20px]
-                    border
-                    border-secondary/20
-                    bg-secondary/[0.06]
-                    p-4
-                  "
-                >
-                  <div
-                    className="
-                      flex
-                      flex-col
-                      gap-4
+                <div className="rounded-[20px] border border-secondary/20 bg-secondary/[0.06] p-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
-                      sm:flex-row
-                      sm:items-center
-                      sm:justify-between
-                    "
-                  >
-                    <div
-                      className="
-                        flex
-                        items-center
-                        gap-3
-                      "
-                    >
-                      <span
-                        className="
-                          grid
-                          h-11
-                          w-11
-                          shrink-0
-                          place-items-center
-                          rounded-[14px]
-                          bg-secondary/10
-                          text-secondary
-                        "
-                      >
+                    <div className="flex items-center gap-3">
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] bg-secondary/10 text-secondary">
                         <UserRound
                           size={20}
                         />
                       </span>
 
                       <div>
-                        <strong
-                          className="
-                            block
-                            font-subtitle
-                            text-sm
-                          "
-                        >
+                        <strong className="block font-subtitle text-sm">
                           Créer un compte B4F
                         </strong>
 
-                        <span
-                          className="
-                            mt-1
-                            block
-                            font-body
-                            text-[11px]
-                            text-white/30
-                          "
-                        >
+                        <span className="mt-1 block font-body text-[11px] text-white/30">
                           Retrouve facilement tes billets.
                         </span>
                       </div>
@@ -2146,59 +2140,24 @@ export function CheckoutPage() {
 
                 {/* DIVIDER */}
 
-                <div
-                  className="
-                    my-5
-                    flex
-                    items-center
-                    gap-4
+                <div className="my-6 flex items-center gap-4">
+                  <span className="h-px flex-1 bg-white/[0.08]" />
 
-                    sm:my-6
-                  "
-                >
-                  <span
-                    className="
-                      h-px
-                      flex-1
-                      bg-white/[0.08]
-                    "
-                  />
-
-                  <span
-                    className="
-                      font-subtitle
-                      text-[9px]
-                      uppercase
-                      tracking-[0.18em]
-                      text-white/25
-                    "
-                  >
+                  <span className="font-subtitle text-[9px] uppercase tracking-[0.18em] text-white/25">
                     ou continuer sans compte
                   </span>
 
-                  <span
-                    className="
-                      h-px
-                      flex-1
-                      bg-white/[0.08]
-                    "
-                  />
+                  <span className="h-px flex-1 bg-white/[0.08]" />
                 </div>
 
                 {/* FIELDS */}
 
                 <div className="grid gap-4">
+
                   {/* NAME */}
 
                   <label>
-                    <span
-                      className="
-                        mb-2
-                        block
-                        font-subtitle
-                        text-xs
-                      "
-                    >
+                    <span className="mb-2 block font-subtitle text-xs">
                       Nom du groupe ou du client
                     </span>
 
@@ -2247,15 +2206,7 @@ export function CheckoutPage() {
 
                     {showValidation &&
                       !nameValid && (
-                        <p
-                          className="
-                            mt-2
-                            font-body
-                            text-[10px]
-                            leading-4
-                            text-red-400
-                          "
-                        >
+                        <p className="mt-2 font-body text-[10px] leading-4 text-red-400">
                           Renseigne ton nom.
                         </p>
                       )}
@@ -2264,14 +2215,7 @@ export function CheckoutPage() {
                   {/* PHONE */}
 
                   <div className="min-w-0">
-                    <span
-                      className="
-                        mb-2
-                        block
-                        font-subtitle
-                        text-xs
-                      "
-                    >
+                    <span className="mb-2 block font-subtitle text-xs">
                       Téléphone
                     </span>
 
@@ -2450,15 +2394,7 @@ export function CheckoutPage() {
 
                     {showValidation &&
                       !phoneValid && (
-                        <p
-                          className="
-                            mt-2
-                            font-body
-                            text-[10px]
-                            leading-4
-                            text-red-400
-                          "
-                        >
+                        <p className="mt-2 font-body text-[10px] leading-4 text-red-400">
                           Renseigne un numéro de téléphone valide.
                         </p>
                       )}
@@ -2467,14 +2403,7 @@ export function CheckoutPage() {
                   {/* EMAIL */}
 
                   <label>
-                    <span
-                      className="
-                        mb-2
-                        block
-                        font-subtitle
-                        text-xs
-                      "
-                    >
+                    <span className="mb-2 block font-subtitle text-xs">
                       E-mail
                     </span>
 
@@ -2522,15 +2451,7 @@ export function CheckoutPage() {
 
                     {showValidation &&
                       !emailValid && (
-                        <p
-                          className="
-                            mt-2
-                            font-body
-                            text-[10px]
-                            leading-4
-                            text-red-400
-                          "
-                        >
+                        <p className="mt-2 font-body text-[10px] leading-4 text-red-400">
                           Renseigne une adresse e-mail valide.
                         </p>
                       )}
@@ -2571,54 +2492,24 @@ export function CheckoutPage() {
                 </div>
               </div>
             ) : (
+
+              /* CONNECTED */
+
               <div className="p-5 sm:p-7">
-                <div
-                  className="
-                    flex
-                    items-center
-                    gap-4
-                  "
-                >
-                  <span
-                    className="
-                      grid
-                      h-11
-                      w-11
-                      shrink-0
-                      place-items-center
-                      rounded-full
-                      bg-green-500/10
-                      text-green-400
-                    "
-                  >
+
+                <div className="flex items-center gap-4">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-green-500/10 text-green-400">
                     <CheckCircle2
                       size={20}
                     />
                   </span>
 
                   <div className="min-w-0">
-                    <span
-                      className="
-                        font-subtitle
-                        text-[9px]
-                        uppercase
-                        tracking-[0.18em]
-                        text-green-400
-                      "
-                    >
+                    <span className="font-subtitle text-[9px] uppercase tracking-[0.18em] text-green-400">
                       Compte connecté
                     </span>
 
-                    <strong
-                      className="
-                        mt-1
-                        block
-                        truncate
-                        font-subtitle
-                        text-sm
-                        text-white/80
-                      "
-                    >
+                    <strong className="mt-1 block truncate font-subtitle text-sm text-white/80">
                       {user.user_metadata
                         ?.full_name ||
                         user.email ||
@@ -2626,17 +2517,10 @@ export function CheckoutPage() {
                     </strong>
 
                     {user.email && (
-                      <span
-                        className="
-                          mt-1
-                          block
-                          truncate
-                          font-body
-                          text-[11px]
-                          text-white/30
-                        "
-                      >
-                        {user.email}
+                      <span className="mt-1 block truncate font-body text-[11px] text-white/30">
+                        {
+                          user.email
+                        }
                       </span>
                     )}
                   </div>
@@ -2688,67 +2572,29 @@ export function CheckoutPage() {
             className="
               h-fit
               overflow-hidden
-              rounded-[24px]
+              rounded-[28px]
               border
               border-white/[0.08]
               bg-[#111]
-
-              sm:rounded-[28px]
 
               lg:sticky
               lg:top-28
             "
           >
+
             {/* HEADER */}
 
-            <div
-              className="
-                border-b
-                border-white/[0.07]
-                px-4
-                py-4
+            <div className="border-b border-white/[0.07] px-5 py-5">
+              <div className="flex items-center justify-between gap-3">
 
-                sm:px-5
-                sm:py-5
-              "
-            >
-              <div
-                className="
-                  flex
-                  items-center
-                  justify-between
-                  gap-3
-                "
-              >
-                <h2
-                  className="
-                    font-title
-                    text-xl
-                    uppercase
-
-                    sm:text-2xl
-                  "
-                >
+                <h2 className="font-title text-2xl uppercase">
                   Récapitulatif
                 </h2>
 
-                <span
-                  className="
-                    rounded-full
-                    border
-                    border-white/[0.07]
-                    bg-[#151515]
-                    px-3
-                    py-1.5
-                    font-subtitle
-                    text-[8px]
-                    uppercase
-                    text-white/35
-
-                    sm:text-[9px]
-                  "
-                >
-                  {eveningCount}{" "}
+                <span className="rounded-full border border-white/[0.07] bg-[#151515] px-3 py-1.5 font-subtitle text-[9px] uppercase text-white/35">
+                  {
+                    eveningCount
+                  }{" "}
                   soirée
                   {eveningCount >
                   1
@@ -2760,15 +2606,8 @@ export function CheckoutPage() {
 
             {/* ITEMS */}
 
-            <div
-              className="
-                custom-scrollbar
-                max-h-[62vh]
-                space-y-2
-                overflow-y-auto
-                p-3
-              "
-            >
+            <div className="custom-scrollbar max-h-[62vh] space-y-2 overflow-y-auto p-3">
+
               {checkoutItems.map(
                 (
                   item,
@@ -2816,30 +2655,17 @@ export function CheckoutPage() {
                         bg-[#151515]
                       "
                     >
-                      <div className="p-3">
-                        <div
-                          className="
-                            grid
-                            grid-cols-[60px_minmax(0,1fr)]
-                            gap-3
 
-                            sm:grid-cols-[68px_minmax(0,1fr)]
-                          "
-                        >
+                      {/* TICKET */}
+
+                      <div className="p-3">
+
+                        <div className="grid grid-cols-[68px_minmax(0,1fr)] gap-3">
+
                           {/* IMAGE */}
 
-                          <div
-                            className="
-                              h-[60px]
-                              w-[60px]
-                              overflow-hidden
-                              rounded-[12px]
-                              bg-[#0f0f0f]
+                          <div className="h-[68px] w-[68px] overflow-hidden rounded-[12px] bg-[#0f0f0f]">
 
-                              sm:h-[68px]
-                              sm:w-[68px]
-                            "
-                          >
                             {image ? (
                               <img
                                 src={
@@ -2851,21 +2677,11 @@ export function CheckoutPage() {
                                     ? item.packName
                                     : item.eventName
                                 }
-                                className="
-                                  h-full
-                                  w-full
-                                  object-cover
-                                "
+                                className="h-full w-full object-cover"
                               />
                             ) : (
-                              <div
-                                className="
-                                  grid
-                                  h-full
-                                  place-items-center
-                                  text-white/20
-                                "
-                              >
+                              <div className="grid h-full place-items-center text-white/20">
+
                                 {item.kind ===
                                 "pack" ? (
                                   <Package
@@ -2883,27 +2699,15 @@ export function CheckoutPage() {
                           {/* INFO */}
 
                           <div className="min-w-0">
-                            <div
-                              className="
-                                flex
-                                items-start
-                                justify-between
-                                gap-2
-                              "
-                            >
-                              <div className="min-w-0">
-                                <span
-                                  className="
-                                    font-subtitle
-                                    text-[8px]
-                                    uppercase
-                                    tracking-[0.1em]
-                                    text-secondary
 
-                                    sm:text-[9px]
-                                  "
-                                >
-                                  {amount}{" "}
+                            <div className="flex items-start justify-between gap-3">
+
+                              <div className="min-w-0">
+
+                                <span className="font-subtitle text-[9px] uppercase tracking-[0.1em] text-secondary">
+                                  {
+                                    amount
+                                  }{" "}
 
                                   {item.kind ===
                                   "pack"
@@ -2931,24 +2735,7 @@ export function CheckoutPage() {
 
                                 {selectedExtras.length >
                                   0 && (
-                                  <span
-                                    className="
-                                      ml-1.5
-                                      rounded-full
-                                      bg-green-500/[0.08]
-                                      px-1.5
-                                      py-0.5
-                                      font-subtitle
-                                      text-[6px]
-                                      uppercase
-                                      text-green-300
-
-                                      sm:ml-2
-                                      sm:px-2
-                                      sm:py-1
-                                      sm:text-[7px]
-                                    "
-                                  >
+                                  <span className="ml-2 rounded-full bg-green-500/[0.08] px-2 py-1 font-subtitle text-[7px] uppercase text-green-300">
                                     {
                                       selectedExtras.length
                                     }{" "}
@@ -2961,15 +2748,7 @@ export function CheckoutPage() {
                                 )}
                               </div>
 
-                              <strong
-                                className="
-                                  shrink-0
-                                  font-subtitle
-                                  text-[13px]
-
-                                  sm:text-[14px]
-                                "
-                              >
+                              <strong className="shrink-0 font-subtitle text-[14px]">
                                 {formatMoney(
                                   getCartItemTotal(
                                     item,
@@ -2979,60 +2758,30 @@ export function CheckoutPage() {
                               </strong>
                             </div>
 
-                            <strong
-                              className="
-                                block
-                                truncate
-                                font-subtitle
-                                text-[12px]
-                                text-white/90
+                            {/* NAME */}
 
-                                sm:text-[13px]
-                              "
-                            >
+                            <strong className=" block truncate font-subtitle text-[13px] text-white/90">
                               {item.kind ===
                               "pack"
                                 ? item.packName
                                 : item.eventName}
                             </strong>
 
-                            <div
-                              className="
-                                flex
-                                items-center
-                                justify-between
-                                gap-2
-                              "
-                            >
-                              <div
-                                className="
-                                  flex
-                                  min-w-0
-                                  items-center
-                                  gap-1.5
-                                "
-                              >
+                            {/* DATE + QTY */}
+
+                            <div className=" flex items-center justify-between gap-2">
+
+                              <div className="flex min-w-0 items-center gap-1.5">
+
                                 {dates.length >
                                   0 && (
                                   <>
                                     <CalendarDays
                                       size={11}
-                                      className="
-                                        shrink-0
-                                        text-white/30
-                                      "
+                                      className="shrink-0 text-white/30"
                                     />
 
-                                    <span
-                                      className="
-                                        truncate
-                                        font-body
-                                        text-[8px]
-                                        text-white/35
-
-                                        sm:text-[9px]
-                                      "
-                                    >
+                                    <span className="truncate font-body text-[9px] text-white/35">
                                       {formatEventDate(
                                         dates[0],
                                         locale,
@@ -3048,6 +2797,8 @@ export function CheckoutPage() {
                                   </>
                                 )}
                               </div>
+
+                              {/* EVENT QUANTITY */}
 
                               {item.kind !==
                                 "pack" && (
@@ -3078,14 +2829,12 @@ export function CheckoutPage() {
                                 />
                               )}
 
+                              {/* PACK QUANTITY */}
+
                               {item.kind ===
                                 "pack" && (
-                                <div
-                                  className="
-                                    flex
-                                    gap-1
-                                  "
-                                >
+                                <div className="flex gap-1">
+
                                   {item.maleQuantity >
                                     0 && (
                                     <QuantityControl
@@ -3140,33 +2889,20 @@ export function CheckoutPage() {
                         </div>
                       </div>
 
-                      {/* OPTIONS */}
+                      {/* =====================================
+                          OPTIONS & TABLES
+                      ====================================== */}
 
                       {extras.length >
                         0 && (
-                        <div
-                          className="
-                            border-t
-                            border-white/[0.07]
-                            bg-[#101010]
-                            p-3
-                          "
-                        >
-                          <span
-                            className="
-                              mb-2
-                              block
-                              font-subtitle
-                              text-[8px]
-                              uppercase
-                              tracking-[0.12em]
-                              text-white/30
-                            "
-                          >
+                        <div className="border-t border-white/[0.07] bg-[#101010] p-3">
+
+                          <span className="mb-2.5 block font-subtitle text-[8px] uppercase tracking-[0.12em] text-white/30">
                             Options & tables
                           </span>
 
                           <div className="space-y-2">
+
                             {extras.map(
                               (
                                 extra,
@@ -3201,15 +2937,12 @@ export function CheckoutPage() {
                                     className={`
                                       flex
                                       items-center
-                                      gap-2.5
+                                      gap-3
                                       rounded-[13px]
                                       border
-                                      px-2.5
+                                      px-3
                                       py-2.5
                                       transition
-
-                                      sm:gap-3
-                                      sm:px-3
 
                                       ${
                                         selected
@@ -3221,6 +2954,9 @@ export function CheckoutPage() {
                                       }
                                     `}
                                   >
+
+                                    {/* ICON */}
+
                                     <span
                                       className={`
                                         grid
@@ -3250,41 +2986,21 @@ export function CheckoutPage() {
                                       )}
                                     </span>
 
-                                    <div
-                                      className="
-                                        min-w-0
-                                        flex-1
-                                      "
-                                    >
-                                      <span
-                                        className="
-                                          block
-                                          font-subtitle
-                                          text-[7px]
-                                          uppercase
-                                          tracking-[0.1em]
-                                          text-white/30
-                                        "
-                                      >
+                                    {/* INFO */}
+
+                                    <div className="min-w-0 flex-1">
+
+                                      <span className="block font-subtitle text-[7px] uppercase tracking-[0.1em] text-white/30">
                                         {extra.kind ===
                                         "table"
                                           ? "Table"
                                           : "Option"}
                                       </span>
 
-                                      <strong
-                                        className="
-                                          mt-0.5
-                                          block
-                                          truncate
-                                          font-subtitle
-                                          text-[10px]
-                                          text-white/80
-
-                                          sm:text-[11px]
-                                        "
-                                      >
-                                        {extra.name}
+                                      <strong className="mt-0.5 block truncate font-subtitle text-[11px] text-white/80">
+                                        {
+                                          extra.name
+                                        }
                                       </strong>
 
                                       {extra.kind ===
@@ -3293,15 +3009,7 @@ export function CheckoutPage() {
                                           "number" &&
                                         extra.fullPrice >
                                           0 && (
-                                          <span
-                                            className="
-                                              mt-0.5
-                                              block
-                                              font-body
-                                              text-[8px]
-                                              text-white/25
-                                            "
-                                          >
+                                          <span className="mt-0.5 block font-body text-[8px] text-white/25">
                                             Prix total :{" "}
                                             {formatMoney(
                                               extra.fullPrice,
@@ -3311,12 +3019,10 @@ export function CheckoutPage() {
                                         )}
                                     </div>
 
-                                    <div
-                                      className="
-                                        shrink-0
-                                        text-right
-                                      "
-                                    >
+                                    {/* PRICE + QUANTITY */}
+
+                                    <div className="shrink-0 text-right">
+
                                       <strong
                                         className={`
                                           block
@@ -3344,6 +3050,7 @@ export function CheckoutPage() {
                                       </strong>
 
                                       <div className="mt-1.5">
+
                                         <QuantityControl
                                           value={
                                             extra.quantity
@@ -3386,42 +3093,22 @@ export function CheckoutPage() {
               )}
             </div>
 
-            {/* TOTALS */}
+            {/* =================================================
+                TOTALS
+            ================================================= */}
 
-            <div
-              className="
-                border-t
-                border-white/[0.07]
-                p-4
+            <div className="border-t border-white/[0.07] p-5">
 
-                sm:p-5
-              "
-            >
-              <div
-                className="
-                  space-y-2.5
-                  font-body
-                  text-xs
-                "
-              >
-                <div
-                  className="
-                    flex
-                    items-center
-                    justify-between
-                    text-white/35
-                  "
-                >
+              <div className="space-y-2.5 font-body text-xs">
+
+                {/* SOUS-TOTAL */}
+
+                <div className="flex items-center justify-between text-white/35">
                   <span>
                     Sous-total
                   </span>
 
-                  <strong
-                    className="
-                      font-subtitle
-                      text-white/60
-                    "
-                  >
+                  <strong className="font-subtitle text-white/60">
                     {formatMoney(
                       checkoutSubtotal,
                       locale,
@@ -3429,24 +3116,14 @@ export function CheckoutPage() {
                   </strong>
                 </div>
 
-                <div
-                  className="
-                    flex
-                    items-center
-                    justify-between
-                    text-white/35
-                  "
-                >
+                {/* FRAIS */}
+
+                <div className="flex items-center justify-between text-white/35">
                   <span>
                     Frais
                   </span>
 
-                  <strong
-                    className="
-                      font-subtitle
-                      text-white/60
-                    "
-                  >
+                  <strong className="font-subtitle text-white/60">
                     {formatMoney(
                       checkoutServiceFee,
                       locale,
@@ -3455,35 +3132,15 @@ export function CheckoutPage() {
                 </div>
               </div>
 
-              <div
-                className="
-                  mt-4
-                  flex
-                  items-center
-                  justify-between
-                  border-t
-                  border-white/[0.08]
-                  pt-4
-                "
-              >
-                <span
-                  className="
-                    font-title
-                    text-xl
-                    uppercase
-                  "
-                >
+              {/* TOTAL */}
+
+              <div className="mt-4 flex items-center justify-between border-t border-white/[0.08] pt-4">
+
+                <span className="font-title text-xl uppercase">
                   Total
                 </span>
 
-                <strong
-                  className="
-                    font-title
-                    text-2xl
-
-                    sm:text-3xl
-                  "
-                >
+                <strong className="font-title text-3xl">
                   {formatMoney(
                     checkoutTotal,
                     locale,
@@ -3503,20 +3160,38 @@ export function CheckoutPage() {
 ========================================================= */
 
 type PaymentSectionProps = {
-  accepted: boolean;
+  accepted:
+    boolean;
 
-  setAccepted: (
-    value: boolean,
-  ) => void;
+  setAccepted:
+    (
+      value:
+        boolean,
+    ) => void;
 
-  error: string;
-  loading: boolean;
-  canSubmit: boolean;
-  total: number;
-  locale: string;
-  acceptText: string;
-  preparingText: string;
-  showValidation: boolean;
+  error:
+    string;
+
+  loading:
+    boolean;
+
+  canSubmit:
+    boolean;
+
+  total:
+    number;
+
+  locale:
+    string;
+
+  acceptText:
+    string;
+
+  preparingText:
+    string;
+
+  showValidation:
+    boolean;
 };
 
 function PaymentSection({
@@ -3537,6 +3212,7 @@ function PaymentSection({
 
   return (
     <div className="pt-1">
+
       {/* CGV */}
 
       <div
@@ -3552,15 +3228,8 @@ function PaymentSection({
           }
         `}
       >
-        <label
-          className="
-            flex
-            cursor-pointer
-            items-start
-            gap-3
-            py-1
-          "
-        >
+        <label className="flex cursor-pointer items-start gap-3 py-1">
+
           <input
             type="checkbox"
             checked={
@@ -3600,7 +3269,9 @@ function PaymentSection({
               }
             `}
           >
-            {acceptText}
+            {
+              acceptText
+            }
           </span>
         </label>
       </div>
@@ -3608,22 +3279,10 @@ function PaymentSection({
       {/* ERROR */}
 
       {error && (
-        <div
-          className="
-            mt-3
-            rounded-[14px]
-            border
-            border-red-500/20
-            bg-red-500/[0.07]
-            px-4
-            py-3
-            font-body
-            text-[11px]
-            leading-5
-            text-red-200
-          "
-        >
-          {error}
+        <div className="mt-3 rounded-[14px] border border-red-500/20 bg-red-500/[0.07] px-4 py-3 font-body text-[11px] leading-5 text-red-200">
+          {
+            error
+          }
         </div>
       )}
 
@@ -3638,7 +3297,7 @@ function PaymentSection({
           group
           mt-3
           flex
-          min-h-[54px]
+          min-h-[56px]
           w-full
           items-center
           justify-center
@@ -3651,8 +3310,6 @@ function PaymentSection({
           text-black
           transition-all
           duration-300
-
-          sm:min-h-[56px]
 
           hover:-translate-y-0.5
           hover:brightness-105
@@ -3674,11 +3331,7 @@ function PaymentSection({
         {!loading && (
           <ArrowRight
             size={17}
-            className="
-              transition-transform
-              duration-300
-              group-hover:translate-x-1
-            "
+            className="transition-transform duration-300 group-hover:translate-x-1"
           />
         )}
       </button>
